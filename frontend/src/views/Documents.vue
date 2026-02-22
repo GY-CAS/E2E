@@ -1,57 +1,62 @@
 <template>
   <div class="documents-page">
-    <el-card>
-      <template #header>
-        <div class="card-header">
-          <div class="header-left">
-            <span>文档列表</span>
-            <el-select v-model="selectedProject" placeholder="选择项目" style="margin-left: 16px; width: 200px;" clearable @change="loadDocuments">
-              <el-option v-for="p in projects" :key="p.id" :label="p.name" :value="p.id" />
-            </el-select>
+    <div class="page-header">
+      <div class="header-content">
+        <h1 class="page-title">文档管理</h1>
+        <p class="page-subtitle">上传和管理项目文档</p>
+      </div>
+      <div class="header-actions">
+        <el-select v-model="selectedProject" placeholder="选择项目" class="project-select" clearable @change="loadDocuments">
+          <el-option v-for="p in projects" :key="p.id" :label="p.name" :value="p.id" />
+        </el-select>
+        <el-upload
+          :show-file-list="false"
+          :before-upload="handleUpload"
+          :disabled="!selectedProject"
+        >
+          <el-button type="primary" class="upload-btn" :disabled="!selectedProject">
+            <el-icon><Upload /></el-icon>
+            上传文档
+          </el-button>
+        </el-upload>
+      </div>
+    </div>
+    
+    <div class="content-card">
+      <div class="documents-list">
+        <div v-for="doc in documents" :key="doc.id" class="document-item">
+          <div class="doc-icon">
+            <el-icon><DocumentIcon /></el-icon>
           </div>
-          <el-upload
-            :show-file-list="false"
-            :before-upload="handleUpload"
-            :disabled="!selectedProject"
-          >
-            <el-button type="primary" :disabled="!selectedProject">
-              <el-icon><Upload /></el-icon>
-              上传文档
+          <div class="doc-info">
+            <div class="doc-name">{{ doc.name }}</div>
+            <div class="doc-meta">
+              <span class="meta-tag">{{ getDocTypeLabel(doc.doc_type) }}</span>
+              <span class="meta-size">{{ formatFileSize(doc.file_size) }}</span>
+              <span class="meta-date">{{ formatDate(doc.created_at) }}</span>
+            </div>
+          </div>
+          <div class="doc-status" :class="doc.status">
+            {{ getStatusLabel(doc.status) }}
+          </div>
+          <div class="doc-actions">
+            <el-button type="primary" text size="small" @click="parseDocument(doc)" :disabled="doc.status !== 'pending'">
+              <el-icon><Refresh /></el-icon>
+              解析
             </el-button>
-          </el-upload>
+            <el-button type="danger" text size="small" @click="deleteDocument(doc)">
+              <el-icon><Delete /></el-icon>
+              删除
+            </el-button>
+          </div>
         </div>
-      </template>
-      
-      <el-table :data="documents" v-loading="loading" stripe>
-        <el-table-column prop="name" label="文档名称" min-width="200" />
-        <el-table-column prop="doc_type" label="文档类型" width="120">
-          <template #default="{ row }">
-            <el-tag>{{ getDocTypeLabel(row.doc_type) }}</el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column prop="file_size" label="文件大小" width="120">
-          <template #default="{ row }">
-            {{ formatFileSize(row.file_size) }}
-          </template>
-        </el-table-column>
-        <el-table-column prop="status" label="状态" width="100">
-          <template #default="{ row }">
-            <el-tag :type="getStatusType(row.status)">{{ getStatusLabel(row.status) }}</el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column prop="created_at" label="上传时间" width="180">
-          <template #default="{ row }">
-            {{ formatDate(row.created_at) }}
-          </template>
-        </el-table-column>
-        <el-table-column label="操作" width="200" fixed="right">
-          <template #default="{ row }">
-            <el-button type="primary" link @click="parseDocument(row)" :disabled="row.status !== 'pending'">解析</el-button>
-            <el-button type="danger" link @click="deleteDocument(row)">删除</el-button>
-          </template>
-        </el-table-column>
-      </el-table>
-    </el-card>
+        
+        <div v-if="!loading && documents.length === 0" class="empty-state">
+          <el-icon><DocumentAdd /></el-icon>
+          <p>{{ selectedProject ? '暂无文档' : '请先选择项目' }}</p>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -59,7 +64,7 @@
 import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Upload } from '@element-plus/icons-vue'
+import { Upload, Document as DocumentIcon, DocumentAdd, Refresh, Delete } from '@element-plus/icons-vue'
 import { documentApi, projectApi, type Document, type Project } from '@/api'
 import dayjs from 'dayjs'
 
@@ -85,21 +90,14 @@ const statusLabels: Record<string, string> = {
   failed: '解析失败'
 }
 
-const statusTypes: Record<string, string> = {
-  pending: 'info',
-  processing: 'warning',
-  parsed: 'success',
-  failed: 'danger'
-}
-
-const getDocTypeLabel = (type: string) => docTypeLabels[type] || type
+const getDocTypeLabel = (type: string) => docTypeLabels[type] || type || '文档'
 const getStatusLabel = (status: string) => statusLabels[status] || status
-const getStatusType = (status: string) => statusTypes[status] || 'info'
-const formatDate = (date: string) => dayjs(date).format('YYYY-MM-DD HH:mm:ss')
+const formatDate = (date: string) => dayjs(date).format('YYYY-MM-DD HH:mm')
 const formatFileSize = (size: number) => {
+  if (!size) return '-'
   if (size < 1024) return `${size} B`
-  if (size < 1024 * 1024) return `${(size / 1024).toFixed(2)} KB`
-  return `${(size / 1024 / 1024).toFixed(2)} MB`
+  if (size < 1024 * 1024) return `${(size / 1024).toFixed(1)} KB`
+  return `${(size / 1024 / 1024).toFixed(1)} MB`
 }
 
 const loadProjects = async () => {
@@ -177,14 +175,172 @@ onMounted(async () => {
 
 <style lang="scss" scoped>
 .documents-page {
-  .card-header {
+  min-height: calc(100vh - 60px);
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  padding: 24px;
+  color: #fff;
+  
+  .page-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    margin-bottom: 24px;
+    padding: 20px 24px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
     
-    .header-left {
+    .header-content {
+      .page-title {
+        font-size: 22px;
+        font-weight: 600;
+        margin: 0 0 6px 0;
+      }
+      
+      .page-subtitle {
+        font-size: 13px;
+        color: rgba(255, 255, 255, 0.5);
+        margin: 0;
+      }
+    }
+    
+    .header-actions {
       display: flex;
-      align-items: center;
+      gap: 12px;
+      
+      .project-select {
+        width: 200px;
+      }
+      
+      .upload-btn {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        
+        &:hover:not(:disabled) {
+          opacity: 0.9;
+        }
+        
+        &:disabled {
+          opacity: 0.5;
+        }
+      }
+    }
+  }
+  
+  .content-card {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 20px;
+    
+    .documents-list {
+      .document-item {
+        display: flex;
+        align-items: center;
+        padding: 16px 20px;
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 10px;
+        margin-bottom: 12px;
+        transition: all 0.3s ease;
+        
+        &:hover {
+          background: rgba(255, 255, 255, 0.06);
+          
+          .doc-actions {
+            opacity: 1;
+          }
+        }
+        
+        .doc-icon {
+          width: 44px;
+          height: 44px;
+          border-radius: 10px;
+          background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin-right: 16px;
+          
+          .el-icon {
+            font-size: 22px;
+            color: #fff;
+          }
+        }
+        
+        .doc-info {
+          flex: 1;
+          
+          .doc-name {
+            font-size: 15px;
+            font-weight: 500;
+            margin-bottom: 6px;
+          }
+          
+          .doc-meta {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.5);
+            
+            .meta-tag {
+              padding: 2px 8px;
+              background: rgba(102, 126, 234, 0.2);
+              color: #667eea;
+              border-radius: 4px;
+            }
+          }
+        }
+        
+        .doc-status {
+          font-size: 12px;
+          padding: 4px 12px;
+          border-radius: 4px;
+          margin-right: 16px;
+          
+          &.pending {
+            background: rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.6);
+          }
+          
+          &.processing {
+            background: rgba(230, 162, 60, 0.2);
+            color: #e6a23c;
+          }
+          
+          &.parsed {
+            background: rgba(103, 194, 58, 0.2);
+            color: #67c23a;
+          }
+          
+          &.failed {
+            background: rgba(245, 108, 108, 0.2);
+            color: #f56c6c;
+          }
+        }
+        
+        .doc-actions {
+          display: flex;
+          gap: 4px;
+          opacity: 0.6;
+          transition: opacity 0.3s ease;
+        }
+      }
+      
+      .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: rgba(255, 255, 255, 0.4);
+        
+        .el-icon {
+          font-size: 64px;
+          margin-bottom: 16px;
+        }
+        
+        p {
+          font-size: 14px;
+        }
+      }
     }
   }
 }

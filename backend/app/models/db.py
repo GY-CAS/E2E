@@ -47,6 +47,7 @@ class TCStatus(str, Enum):
     DRAFT = "draft"
     REVIEWED = "reviewed"
     APPROVED = "approved"
+    REJECTED = "rejected"
 
 
 class ProjectStatus(str, Enum):
@@ -225,7 +226,7 @@ class MindMapNode(SQLModel, table=True):
     test_case: Optional[TestCase] = Relationship(back_populates="mind_map_nodes")
     children: List["MindMapNode"] = Relationship(
         back_populates="parent",
-        sa_relationship_kwargs={"remote_side": "MindMapNode.id"}
+        sa_relationship_kwargs={"foreign_keys": "[MindMapNode.parent_id]"}
     )
     parent: Optional["MindMapNode"] = Relationship(
         back_populates="children",

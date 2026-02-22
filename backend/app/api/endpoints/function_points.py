@@ -46,18 +46,21 @@ async def create_function_points_batch(
 
 @router.get("/", response_model=List[FunctionPointRead])
 async def list_function_points(
-    project_id: UUID = None,
+    project_id: str = None,
     test_type: TestType = None,
     priority: Priority = None,
     status_filter: FPStatus = None,
     skip: int = 0,
     limit: int = 100,
     session: Session = Depends(get_session)
-) -> List[FunctionPoint]:
+):
     query = select(FunctionPoint)
     
     if project_id:
-        query = query.where(FunctionPoint.project_id == project_id)
+        try:
+            query = query.where(FunctionPoint.project_id == UUID(project_id))
+        except ValueError:
+            pass
     if test_type:
         query = query.where(FunctionPoint.test_type == test_type)
     if priority:
@@ -67,7 +70,7 @@ async def list_function_points(
     
     query = query.offset(skip).limit(limit)
     fps = session.exec(query).all()
-    return fps
+    return [FunctionPointRead.from_orm_with_enum(fp) for fp in fps]
 
 
 @router.get("/{fp_id}", response_model=FunctionPointRead)

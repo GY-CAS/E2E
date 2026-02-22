@@ -33,7 +33,7 @@ async def create_test_case(
     session.add(tc)
     session.commit()
     session.refresh(tc)
-    return tc
+    return TestCaseRead.from_orm_with_enum(tc)
 
 
 @router.post("/batch", response_model=List[TestCaseRead], status_code=status.HTTP_201_CREATED)
@@ -61,26 +61,32 @@ async def create_test_cases_batch(
     for tc in tcs:
         session.refresh(tc)
     
-    return tcs
+    return [TestCaseRead.from_orm_with_enum(tc) for tc in tcs]
 
 
 @router.get("/", response_model=List[TestCaseRead])
 async def list_test_cases(
-    project_id: UUID = None,
-    function_point_id: UUID = None,
+    project_id: str = None,
+    function_point_id: str = None,
     test_type: TestType = None,
     priority: Priority = None,
     status_filter: TCStatus = None,
     skip: int = 0,
     limit: int = 100,
     session: Session = Depends(get_session)
-) -> List[TestCase]:
+):
     query = select(TestCase)
     
     if project_id:
-        query = query.where(TestCase.project_id == project_id)
+        try:
+            query = query.where(TestCase.project_id == UUID(project_id))
+        except ValueError:
+            pass
     if function_point_id:
-        query = query.where(TestCase.function_point_id == function_point_id)
+        try:
+            query = query.where(TestCase.function_point_id == UUID(function_point_id))
+        except ValueError:
+            pass
     if test_type:
         query = query.where(TestCase.test_type == test_type)
     if priority:
@@ -90,7 +96,7 @@ async def list_test_cases(
     
     query = query.offset(skip).limit(limit)
     tcs = session.exec(query).all()
-    return tcs
+    return [TestCaseRead.from_orm_with_enum(tc) for tc in tcs]
 
 
 @router.get("/{tc_id}", response_model=TestCaseRead)
@@ -104,7 +110,7 @@ async def get_test_case(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Test Case {tc_id} not found"
         )
-    return tc
+    return TestCaseRead.from_orm_with_enum(tc)
 
 
 @router.patch("/{tc_id}", response_model=TestCaseRead)
@@ -113,6 +119,9 @@ async def update_test_case(
     tc_data: TestCaseUpdate,
     session: Session = Depends(get_session)
 ) -> TestCase:
+    import logging
+    logger = logging.getLogger(__name__)
+    
     tc = session.get(TestCase, tc_id)
     if not tc:
         raise HTTPException(
@@ -120,29 +129,41 @@ async def update_test_case(
             detail=f"Test Case {tc_id} not found"
         )
     
-    update_data = tc_data.model_dump(exclude_unset=True)
-    
-    if "test_steps" in update_data:
-        steps = update_data.pop("test_steps")
-        tc.set_test_steps([s.model_dump() if hasattr(s, 'model_dump') else s for s in steps])
-    
-    if "tags" in update_data:
-        tags = update_data.pop("tags")
-        tc.set_tags(tags)
-    
-    if "test_data" in update_data:
-        test_data = update_data.pop("test_data")
-        tc.test_data = json.dumps(test_data, ensure_ascii=False) if test_data else None
-    
-    for key, value in update_data.items():
-        setattr(tc, key, value)
-    
-    tc.updated_at = datetime.utcnow()
-    
-    session.add(tc)
-    session.commit()
-    session.refresh(tc)
-    return tc
+    try:
+        update_data = tc_data.model_dump(exclude_unset=True)
+        logger.info(f"Update data: {update_data}")
+        
+        if "test_steps" in update_data:
+            steps = update_data.pop("test_steps")
+            if steps:
+                tc.set_test_steps([s.model_dump() if hasattr(s, 'model_dump') else s for s in steps])
+            else:
+                tc.set_test_steps([])
+        
+        if "tags" in update_data:
+            tags = update_data.pop("tags")
+            tc.set_tags(tags or [])
+        
+        if "test_data" in update_data:
+            test_data = update_data.pop("test_data")
+            tc.test_data = json.dumps(test_data, ensure_ascii=False) if test_data else None
+        
+        for key, value in update_data.items():
+            setattr(tc, key, value)
+        
+        tc.updated_at = datetime.utcnow()
+        
+        session.add(tc)
+        session.commit()
+        session.refresh(tc)
+        return TestCaseRead.from_orm_with_enum(tc)
+    except Exception as e:
+        logger.error(f"Failed to update test case: {e}", exc_info=True)
+        session.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"更新失败: {str(e)}"
+        )
 
 
 @router.post("/{tc_id}/approve", response_model=TestCaseRead)
@@ -163,7 +184,28 @@ async def approve_test_case(
     session.add(tc)
     session.commit()
     session.refresh(tc)
-    return tc
+    return TestCaseRead.from_orm_with_enum(tc)
+
+
+@router.post("/{tc_id}/reject", response_model=TestCaseRead)
+async def reject_test_case(
+    tc_id: UUID,
+    session: Session = Depends(get_session)
+) -> TestCase:
+    tc = session.get(TestCase, tc_id)
+    if not tc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Test Case {tc_id} not found"
+        )
+    
+    tc.status = TCStatus.REJECTED
+    tc.updated_at = datetime.utcnow()
+    
+    session.add(tc)
+    session.commit()
+    session.refresh(tc)
+    return TestCaseRead.from_orm_with_enum(tc)
 
 
 @router.delete("/{tc_id}", status_code=status.HTTP_204_NO_CONTENT)

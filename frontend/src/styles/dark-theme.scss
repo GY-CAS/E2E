@@ -1,0 +1,221 @@
+.dark-theme-page {
+  min-height: calc(100vh - 60px);
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  padding: 24px;
+  color: #fff;
+  
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    padding: 20px 24px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    
+    .header-content {
+      .page-title {
+        font-size: 22px;
+        font-weight: 600;
+        margin: 0 0 6px 0;
+      }
+      
+      .page-subtitle {
+        font-size: 13px;
+        color: rgba(255, 255, 255, 0.5);
+        margin: 0;
+      }
+    }
+    
+    .header-actions {
+      display: flex;
+      gap: 12px;
+      
+      .primary-btn {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        
+        &:hover {
+          opacity: 0.9;
+        }
+      }
+    }
+  }
+  
+  .content-card {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 20px;
+    
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      
+      h3 {
+        font-size: 16px;
+        font-weight: 500;
+        margin: 0;
+      }
+    }
+  }
+  
+  .data-table {
+    --el-table-bg-color: transparent;
+    --el-table-tr-bg-color: transparent;
+    --el-table-header-bg-color: rgba(255, 255, 255, 0.03);
+    --el-table-row-hover-bg-color: rgba(255, 255, 255, 0.05);
+    --el-table-border-color: rgba(255, 255, 255, 0.1);
+    --el-table-text-color: rgba(255, 255, 255, 0.85);
+    --el-table-header-text-color: rgba(255, 255, 255, 0.6);
+    
+    .el-table__header th {
+      font-weight: 500;
+    }
+    
+    .el-table__row {
+      transition: all 0.3s ease;
+      
+      &:hover {
+        background: rgba(255, 255, 255, 0.05) !important;
+      }
+    }
+  }
+  
+  .status-tag {
+    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: 4px;
+    
+    &.success {
+      background: rgba(103, 194, 58, 0.2);
+      color: #67c23a;
+    }
+    
+    &.warning {
+      background: rgba(230, 162, 60, 0.2);
+      color: #e6a23c;
+    }
+    
+    &.danger {
+      background: rgba(245, 108, 108, 0.2);
+      color: #f56c6c;
+    }
+    
+    &.info {
+      background: rgba(255, 255, 255, 0.1);
+      color: rgba(255, 255, 255, 0.7);
+    }
+    
+    &.primary {
+      background: rgba(102, 126, 234, 0.2);
+      color: #667eea;
+    }
+  }
+  
+  .action-btn {
+    padding: 4px 8px;
+    font-size: 13px;
+    
+    .el-icon {
+      margin-right: 4px;
+    }
+  }
+  
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: rgba(255, 255, 255, 0.4);
+    
+    .el-icon {
+      font-size: 64px;
+      margin-bottom: 16px;
+    }
+    
+    p {
+      font-size: 14px;
+      margin-bottom: 20px;
+    }
+  }
+  
+  .select-wrapper {
+    .el-select {
+      --el-select-input-focus-border-color: #667eea;
+      
+      .el-input__wrapper {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: none;
+        
+        &:hover {
+          border-color: rgba(255, 255, 255, 0.2);
+        }
+      }
+    }
+  }
+}
+
+.el-dialog.dark-dialog {
+  --el-dialog-bg-color: #1a1a2e;
+  --el-dialog-title-font-size: 18px;
+  
+  .el-dialog__header {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 16px 20px;
+    
+    .el-dialog__title {
+      color: #fff;
+    }
+  }
+  
+  .el-dialog__body {
+    padding: 20px;
+    color: rgba(255, 255, 255, 0.85);
+    
+    .el-form-item__label {
+      color: rgba(255, 255, 255, 0.7);
+    }
+    
+    .el-input__wrapper,
+    .el-textarea__inner {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: none;
+      
+      &:hover {
+        border-color: rgba(255, 255, 255, 0.2);
+      }
+      
+      &:focus {
+        border-color: #667eea;
+      }
+    }
+  }
+  
+  .el-dialog__footer {
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 16px 20px;
+  }
+}
+
+.el-select-dropdown.el-popper {
+  background: #1a1a2e;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  
+  .el-select-dropdown__item {
+    color: rgba(255, 255, 255, 0.85);
+    
+    &:hover {
+      background: rgba(255, 255, 255, 0.05);
+    }
+    
+    &.selected {
+      color: #667eea;
+    }
+  }
+}

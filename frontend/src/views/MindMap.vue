@@ -1,46 +1,47 @@
 <template>
   <div class="mind-map-page">
-    <el-card>
-      <template #header>
-        <div class="card-header">
-          <div class="header-left">
-            <span>思维导图</span>
-            <el-select v-model="selectedProject" placeholder="选择项目" style="margin-left: 16px; width: 200px;" clearable @change="loadMindMap">
-              <el-option v-for="p in projects" :key="p.id" :label="p.name" :value="p.id" />
-            </el-select>
-          </div>
-          <div class="header-right">
-            <el-button-group>
-              <el-button @click="zoomIn">
-                <el-icon><ZoomIn /></el-icon>
-              </el-button>
-              <el-button @click="zoomOut">
-                <el-icon><ZoomOut /></el-icon>
-              </el-button>
-              <el-button @click="resetZoom">
-                <el-icon><RefreshRight /></el-icon>
-              </el-button>
-            </el-button-group>
-          </div>
-        </div>
-      </template>
-      
+    <div class="page-header">
+      <div class="header-content">
+        <h1 class="page-title">思维导图</h1>
+        <p class="page-subtitle">可视化测试用例结构</p>
+      </div>
+      <div class="header-actions">
+        <el-select v-model="selectedProject" placeholder="选择项目" class="project-select" clearable @change="loadMindMap">
+          <el-option v-for="p in projects" :key="p.id" :label="p.name" :value="p.id" />
+        </el-select>
+        <el-button-group class="zoom-controls">
+          <el-button @click="zoomIn">
+            <el-icon><ZoomIn /></el-icon>
+          </el-button>
+          <el-button @click="zoomOut">
+            <el-icon><ZoomOut /></el-icon>
+          </el-button>
+          <el-button @click="resetZoom">
+            <el-icon><RefreshRight /></el-icon>
+          </el-button>
+        </el-button-group>
+      </div>
+    </div>
+    
+    <div class="content-card">
       <div class="mind-map-container" ref="containerRef">
         <div v-if="!selectedProject" class="empty-state">
-          <el-empty description="请选择项目查看思维导图" />
+          <el-icon><Share /></el-icon>
+          <p>请选择项目查看思维导图</p>
         </div>
         <div v-else-if="mindMapData.length === 0" class="empty-state">
-          <el-empty description="暂无思维导图数据，请先生成测试用例" />
+          <el-icon><Share /></el-icon>
+          <p>暂无思维导图数据，请先生成测试用例</p>
         </div>
         <div v-else id="mind-map-canvas" ref="canvasRef" style="width: 100%; height: 600px;"></div>
       </div>
-    </el-card>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, watch, nextTick } from 'vue'
-import { ZoomIn, ZoomOut, RefreshRight } from '@element-plus/icons-vue'
+import { ZoomIn, ZoomOut, RefreshRight, Share } from '@element-plus/icons-vue'
 import { projectApi, type Project } from '@/api'
 import G6 from '@antv/g6'
 
@@ -127,8 +128,8 @@ const renderMindMap = () => {
       size: [120, 30],
       type: 'rect',
       style: {
-        fill: '#409EFF',
-        stroke: '#409EFF',
+        fill: '#667eea',
+        stroke: '#667eea',
         radius: 4
       },
       labelCfg: {
@@ -141,7 +142,7 @@ const renderMindMap = () => {
     defaultEdge: {
       type: 'cubic-horizontal',
       style: {
-        stroke: '#A3B1BF'
+        stroke: 'rgba(255, 255, 255, 0.3)'
       }
     },
     layout: {
@@ -191,25 +192,87 @@ onMounted(() => {
 
 <style lang="scss" scoped>
 .mind-map-page {
-  .card-header {
+  min-height: calc(100vh - 60px);
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  padding: 24px;
+  color: #fff;
+  
+  .page-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    margin-bottom: 24px;
+    padding: 20px 24px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
     
-    .header-left {
+    .header-content {
+      .page-title {
+        font-size: 22px;
+        font-weight: 600;
+        margin: 0 0 6px 0;
+      }
+      
+      .page-subtitle {
+        font-size: 13px;
+        color: rgba(255, 255, 255, 0.5);
+        margin: 0;
+      }
+    }
+    
+    .header-actions {
       display: flex;
+      gap: 12px;
       align-items: center;
+      
+      .project-select {
+        width: 200px;
+      }
+      
+      .zoom-controls {
+        .el-button {
+          background: rgba(255, 255, 255, 0.05);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          color: rgba(255, 255, 255, 0.8);
+          
+          &:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+          }
+        }
+      }
     }
   }
   
-  .mind-map-container {
-    min-height: 600px;
+  .content-card {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 20px;
     
-    .empty-state {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 600px;
+    .mind-map-container {
+      min-height: 600px;
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 8px;
+      
+      .empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 600px;
+        color: rgba(255, 255, 255, 0.4);
+        
+        .el-icon {
+          font-size: 64px;
+          margin-bottom: 16px;
+        }
+        
+        p {
+          font-size: 14px;
+        }
+      }
     }
   }
 }

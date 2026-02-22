@@ -16,11 +16,8 @@
     "axios": "^1.6.2",
     "element-plus": "^2.4.4",
     "@antv/g6": "^4.8.24",
-    "@antv/g6-vue": "^0.0.1",
     "echarts": "^5.4.3",
     "vue-echarts": "^6.6.5",
-    "monaco-editor": "^0.44.0",
-    "@guolao/vue-monaco-editor": "^1.4.1",
     "markdown-it": "^14.0.0",
     "dayjs": "^1.11.10",
     "@vueuse/core": "^10.7.0"

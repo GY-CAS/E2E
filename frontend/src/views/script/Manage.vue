@@ -1,54 +1,75 @@
 <template>
   <div class="scripts-page">
-    <el-card>
-      <template #header>
-        <div class="card-header">
-          <div class="header-left">
-            <span>测试脚本列表</span>
-            <el-select v-model="selectedProject" placeholder="选择项目" style="margin-left: 16px; width: 200px;" clearable @change="loadScripts">
-              <el-option v-for="p in projects" :key="p.id" :label="p.name" :value="p.id" />
-            </el-select>
+    <div class="page-header">
+      <div class="header-content">
+        <h1 class="page-title">测试脚本管理</h1>
+        <p class="page-subtitle">管理自动化测试脚本</p>
+      </div>
+      <div class="header-actions">
+        <el-select v-model="selectedProject" placeholder="选择项目" class="project-select" clearable @change="loadScripts">
+          <el-option v-for="p in projects" :key="p.id" :label="p.name" :value="p.id" />
+        </el-select>
+      </div>
+    </div>
+    
+    <div class="content-card">
+      <div class="scripts-list">
+        <div v-for="script in scripts" :key="script.id" class="script-item">
+          <div class="script-icon">
+            <el-icon><DocumentCopy /></el-icon>
+          </div>
+          <div class="script-info">
+            <div class="script-name">{{ script.name }}</div>
+            <div class="script-meta">
+              <span class="meta-tag lang-tag" :class="script.language">
+                {{ script.language === 'python' ? 'Python' : 'Java' }}
+              </span>
+              <span class="meta-tag framework-tag">{{ script.framework }}</span>
+              <span class="meta-date">{{ formatDate(script.created_at) }}</span>
+            </div>
+          </div>
+          <div class="script-status" :class="script.status">
+            {{ getStatusLabel(script.status) }}
+          </div>
+          <div class="script-actions">
+            <el-button type="primary" text size="small" @click="viewScript(script)">
+              <el-icon><View /></el-icon>
+              查看
+            </el-button>
+            <el-button type="success" text size="small" @click="downloadScript(script)">
+              <el-icon><Download /></el-icon>
+              下载
+            </el-button>
+            <el-button type="danger" text size="small" @click="deleteScript(script)">
+              <el-icon><Delete /></el-icon>
+              删除
+            </el-button>
           </div>
         </div>
-      </template>
-      
-      <el-table :data="scripts" v-loading="loading" stripe>
-        <el-table-column prop="name" label="脚本名称" min-width="200" />
-        <el-table-column prop="language" label="语言" width="100">
-          <template #default="{ row }">
-            <el-tag :type="row.language === 'python' ? 'success' : 'warning'">
-              {{ row.language === 'python' ? 'Python' : 'Java' }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column prop="framework" label="框架" width="100" />
-        <el-table-column prop="status" label="状态" width="100">
-          <template #default="{ row }">
-            <el-tag :type="getStatusType(row.status)">{{ getStatusLabel(row.status) }}</el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column prop="created_at" label="创建时间" width="180">
-          <template #default="{ row }">
-            {{ formatDate(row.created_at) }}
-          </template>
-        </el-table-column>
-        <el-table-column label="操作" width="200" fixed="right">
-          <template #default="{ row }">
-            <el-button type="primary" link @click="viewScript(row)">查看</el-button>
-            <el-button type="primary" link @click="downloadScript(row)">下载</el-button>
-            <el-button type="danger" link @click="deleteScript(row)">删除</el-button>
-          </template>
-        </el-table-column>
-      </el-table>
-    </el-card>
+        
+        <div v-if="!loading && scripts.length === 0" class="empty-state">
+          <el-icon><DocumentCopy /></el-icon>
+          <p>{{ selectedProject ? '暂无测试脚本' : '请先选择项目' }}</p>
+        </div>
+      </div>
+    </div>
     
-    <el-dialog v-model="editorVisible" title="脚本详情" width="900px" top="5vh">
-      <div class="script-info" v-if="currentScript">
-        <el-descriptions :column="3" border size="small" style="margin-bottom: 16px;">
-          <el-descriptions-item label="脚本名称">{{ currentScript.name }}</el-descriptions-item>
-          <el-descriptions-item label="语言">{{ currentScript.language }}</el-descriptions-item>
-          <el-descriptions-item label="框架">{{ currentScript.framework }}</el-descriptions-item>
-        </el-descriptions>
+    <el-dialog v-model="editorVisible" title="脚本详情" width="900px" top="5vh" class="dark-dialog">
+      <div class="script-info-dialog" v-if="currentScript">
+        <div class="info-header">
+          <div class="info-item">
+            <span class="info-label">脚本名称</span>
+            <span class="info-value">{{ currentScript.name }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">语言</span>
+            <span class="info-value">{{ currentScript.language }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">框架</span>
+            <span class="info-value">{{ currentScript.framework }}</span>
+          </div>
+        </div>
         <div class="code-editor">
           <pre><code>{{ currentScript.content }}</code></pre>
         </div>
@@ -60,6 +81,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { DocumentCopy, View, Download, Delete } from '@element-plus/icons-vue'
 import { testScriptApi, projectApi, type TestScript, type Project } from '@/api'
 import dayjs from 'dayjs'
 
@@ -76,15 +98,8 @@ const statusLabels: Record<string, string> = {
   approved: '已通过'
 }
 
-const statusTypes: Record<string, string> = {
-  draft: 'info',
-  reviewed: 'warning',
-  approved: 'success'
-}
-
 const getStatusLabel = (status: string) => statusLabels[status] || status
-const getStatusType = (status: string) => statusTypes[status] || 'info'
-const formatDate = (date: string) => dayjs(date).format('YYYY-MM-DD HH:mm:ss')
+const formatDate = (date: string) => dayjs(date).format('YYYY-MM-DD HH:mm')
 
 const loadProjects = async () => {
   try {
@@ -149,35 +164,233 @@ onMounted(async () => {
 
 <style lang="scss" scoped>
 .scripts-page {
-  .card-header {
+  min-height: calc(100vh - 60px);
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  padding: 24px;
+  color: #fff;
+  
+  .page-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    margin-bottom: 24px;
+    padding: 20px 24px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
     
-    .header-left {
+    .header-content {
+      .page-title {
+        font-size: 22px;
+        font-weight: 600;
+        margin: 0 0 6px 0;
+      }
+      
+      .page-subtitle {
+        font-size: 13px;
+        color: rgba(255, 255, 255, 0.5);
+        margin: 0;
+      }
+    }
+    
+    .header-actions {
       display: flex;
-      align-items: center;
+      gap: 12px;
+      
+      .project-select {
+        width: 200px;
+      }
     }
   }
   
-  .script-info {
+  .content-card {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 20px;
+    
+    .scripts-list {
+      .script-item {
+        display: flex;
+        align-items: center;
+        padding: 16px 20px;
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 10px;
+        margin-bottom: 12px;
+        transition: all 0.3s ease;
+        
+        &:hover {
+          background: rgba(255, 255, 255, 0.06);
+          
+          .script-actions {
+            opacity: 1;
+          }
+        }
+        
+        .script-icon {
+          width: 44px;
+          height: 44px;
+          border-radius: 10px;
+          background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin-right: 16px;
+          
+          .el-icon {
+            font-size: 22px;
+            color: #fff;
+          }
+        }
+        
+        .script-info {
+          flex: 1;
+          
+          .script-name {
+            font-size: 15px;
+            font-weight: 500;
+            margin-bottom: 6px;
+          }
+          
+          .script-meta {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.5);
+            
+            .meta-tag {
+              padding: 2px 8px;
+              border-radius: 4px;
+            }
+            
+            .lang-tag {
+              background: rgba(103, 194, 58, 0.2);
+              color: #67c23a;
+              
+              &.java {
+                background: rgba(230, 162, 60, 0.2);
+                color: #e6a23c;
+              }
+            }
+            
+            .framework-tag {
+              background: rgba(102, 126, 234, 0.2);
+              color: #667eea;
+            }
+          }
+        }
+        
+        .script-status {
+          font-size: 12px;
+          padding: 4px 12px;
+          border-radius: 4px;
+          margin-right: 16px;
+          
+          &.draft {
+            background: rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.6);
+          }
+          
+          &.reviewed {
+            background: rgba(230, 162, 60, 0.2);
+            color: #e6a23c;
+          }
+          
+          &.approved {
+            background: rgba(103, 194, 58, 0.2);
+            color: #67c23a;
+          }
+        }
+        
+        .script-actions {
+          display: flex;
+          gap: 4px;
+          opacity: 0.6;
+          transition: opacity 0.3s ease;
+        }
+      }
+      
+      .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: rgba(255, 255, 255, 0.4);
+        
+        .el-icon {
+          font-size: 64px;
+          margin-bottom: 16px;
+        }
+        
+        p {
+          font-size: 14px;
+        }
+      }
+    }
+  }
+  
+  .script-info-dialog {
+    .info-header {
+      display: flex;
+      gap: 24px;
+      margin-bottom: 16px;
+      padding: 16px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 8px;
+      
+      .info-item {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        
+        .info-label {
+          font-size: 12px;
+          color: rgba(255, 255, 255, 0.5);
+        }
+        
+        .info-value {
+          font-size: 14px;
+          font-weight: 500;
+        }
+      }
+    }
+    
     .code-editor {
-      background-color: #1e1e1e;
+      background-color: #0d1117;
       border-radius: 8px;
       padding: 16px;
       max-height: 500px;
       overflow: auto;
+      border: 1px solid rgba(255, 255, 255, 0.1);
       
       pre {
         margin: 0;
         
         code {
-          color: #d4d4d4;
+          color: #c9d1d9;
           font-family: 'Consolas', 'Monaco', monospace;
           font-size: 13px;
-          line-height: 1.5;
+          line-height: 1.6;
         }
       }
+    }
+  }
+}
+
+:deep(.dark-dialog) {
+  .el-dialog {
+    background: #1a1a2e;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    
+    .el-dialog__header {
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      
+      .el-dialog__title {
+        color: #fff;
+      }
+    }
+    
+    .el-dialog__body {
+      color: rgba(255, 255, 255, 0.8);
     }
   }
 }

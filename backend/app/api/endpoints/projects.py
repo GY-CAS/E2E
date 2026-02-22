@@ -1,15 +1,17 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlmodel import Session, select
-from typing import List
+from sqlmodel import Session, select, func, delete
+from typing import List, Dict, Any
 from uuid import UUID
+import logging
 
 from app.core.database import get_session
 from app.models import (
     Project, ProjectCreate, ProjectUpdate, ProjectRead,
-    ProjectStatus
+    ProjectStatus, Document, FunctionPoint, TestCase, TestScript, MindMapNode, DocStatus
 )
 
 router = APIRouter(prefix="/projects", tags=["Projects"])
+logger = logging.getLogger(__name__)
 
 
 @router.post("/", response_model=ProjectRead, status_code=status.HTTP_201_CREATED)
@@ -53,6 +55,47 @@ async def get_project(
     return project
 
 
+@router.get("/{project_id}/stats")
+async def get_project_stats(
+    project_id: UUID,
+    session: Session = Depends(get_session)
+) -> Dict[str, Any]:
+    project = session.get(Project, project_id)
+    if not project:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Project {project_id} not found"
+        )
+    
+    doc_count = session.exec(
+        select(func.count(Document.id)).where(Document.project_id == project_id)
+    ).one()
+    
+    parsed_doc_count = session.exec(
+        select(func.count(Document.id)).where(
+            Document.project_id == project_id,
+            Document.status == DocStatus.PARSED
+        )
+    ).one()
+    
+    fp_count = session.exec(
+        select(func.count(FunctionPoint.id)).where(FunctionPoint.project_id == project_id)
+    ).one()
+    
+    tc_count = session.exec(
+        select(func.count(TestCase.id)).where(TestCase.project_id == project_id)
+    ).one()
+    
+    return {
+        "project_id": str(project_id),
+        "project_name": project.name,
+        "document_count": doc_count,
+        "parsed_document_count": parsed_doc_count,
+        "function_point_count": fp_count,
+        "test_case_count": tc_count
+    }
+
+
 @router.patch("/{project_id}", response_model=ProjectRead)
 async def update_project(
     project_id: UUID,
@@ -91,6 +134,20 @@ async def delete_project(
             detail=f"Project {project_id} not found"
         )
     
+    logger.info(f"Deleting project {project_id} and all related data")
+    
+    session.exec(delete(MindMapNode).where(MindMapNode.project_id == project_id))
+    
+    session.exec(delete(TestScript).where(TestScript.project_id == project_id))
+    
+    session.exec(delete(TestCase).where(TestCase.project_id == project_id))
+    
+    session.exec(delete(FunctionPoint).where(FunctionPoint.project_id == project_id))
+    
+    session.exec(delete(Document).where(Document.project_id == project_id))
+    
     session.delete(project)
     session.commit()
+    
+    logger.info(f"Project {project_id} deleted successfully")
     return None

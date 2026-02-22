@@ -1,0 +1,36 @@
+services:
+  postgres:
+    image: postgres:16.12-bookworm
+    container_name: e2e-postgres
+    restart: always  # 容器异常退出时自动重启
+    environment:
+      # 核心密码配置
+      POSTGRES_PASSWORD: admin1234
+      # 可选：自定义用户和数据库
+      POSTGRES_USER: admin
+      POSTGRES_DB: e2edb
+      # 可选：设置时区
+      TZ: Asia/Shanghai
+    ports:
+      - "5432:5432"
+    volumes:
+      # 数据持久化卷
+      - postgres-data:/var/lib/postgresql/data
+    # 可选：限制资源
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+    # 关键：加入已有 milvus 网络
+    networks:
+      - milvus
+
+volumes:
+  postgres-data: # 自动创建命名卷，数据持久化
+
+# 关键：标记milvus网络为外部已存在的网络
+networks:
+  milvus:
+    external: true  # 核心配置，告诉Compose不要创建新网络，使用已有的
+    name: milvus    # 必须和已存在的网络名称完全一致

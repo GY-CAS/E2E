@@ -4,7 +4,7 @@ import { ElMessage } from 'element-plus'
 
 const apiClient: AxiosInstance = axios.create({
   baseURL: '/api',
-  timeout: 30000,
+  timeout: 300000,
   headers: {
     'Content-Type': 'application/json'
   }
@@ -59,6 +59,15 @@ export interface Project {
   status: string
   created_at: string
   updated_at: string
+}
+
+export interface ProjectStats {
+  project_id: string
+  project_name: string
+  document_count: number
+  parsed_document_count: number
+  function_point_count: number
+  test_case_count: number
 }
 
 export interface Document {
@@ -135,6 +144,7 @@ export const projectApi = {
   list: (params?: { skip?: number; limit?: number }) => 
     api.get<Project[]>('/projects', { params }),
   get: (id: string) => api.get<Project>(`/projects/${id}`),
+  stats: (id: string) => api.get<ProjectStats>(`/projects/${id}/stats`),
   create: (data: Partial<Project>) => api.post<Project>('/projects', data),
   update: (id: string, data: Partial<Project>) => api.patch<Project>(`/projects/${id}`, data),
   delete: (id: string) => api.delete(`/projects/${id}`)
@@ -155,7 +165,8 @@ export const documentApi = {
     })
   },
   delete: (id: string) => api.delete(`/documents/${id}`),
-  parse: (id: string) => api.post(`/documents/${id}/parse`)
+  parse: (id: string) => api.post(`/documents/${id}/parse`),
+  parseStatus: (id: string) => api.get(`/documents/${id}/parse-status`)
 }
 
 export const functionPointApi = {
@@ -178,6 +189,7 @@ export const testCaseApi = {
   createBatch: (data: Partial<TestCase>[]) => api.post<TestCase[]>('/test-cases/batch', data),
   update: (id: string, data: Partial<TestCase>) => api.patch<TestCase>(`/test-cases/${id}`, data),
   approve: (id: string) => api.post<TestCase>(`/test-cases/${id}/approve`),
+  reject: (id: string) => api.post<TestCase>(`/test-cases/${id}/reject`),
   delete: (id: string) => api.delete(`/test-cases/${id}`)
 }
 
@@ -193,31 +205,43 @@ export const testScriptApi = {
 }
 
 export const generatorApi = {
-  streamGenerate: (data: {
-    project_id: string
-    document_ids: string[]
-    test_types: string[]
-    generate_scripts: boolean
-    script_language: string
-  }) => {
-    return new EventSource(`/api/generator/stream?data=${encodeURIComponent(JSON.stringify(data))}`)
-  },
+  understandRequirements: (userInput: string) => 
+    api.post<{ success: boolean; analysis: any }>('/generator/understand-requirements', { user_input: userInput }),
   
   generateFunctionPoints: (data: {
     project_id: string
-    document_ids: string[]
+    document_ids?: string[]
     test_types: string[]
-  }) => api.post('/generator/function-points', data),
+    user_requirements?: string
+  }) => api.post<{ success: boolean; message: string; function_points: any[]; requirements_analysis?: any }>('/generator/function-points', data),
+  
+  saveFunctionPoints: (data: Partial<FunctionPoint>[]) => 
+    api.post<{ success: boolean; message: string; function_points: FunctionPoint[] }>('/generator/function-points/save', data),
+  
+  refineFunctionPoint: (data: {
+    function_point: any
+    user_feedback: string
+    project_id?: string
+  }) => api.post<{ success: boolean; message: string; function_point: any }>('/generator/function-points/refine', data),
   
   generateTestCases: (data: {
     project_id: string
     function_point_ids: string[]
-  }) => api.post('/generator/test-cases', data),
+  }) => api.post<{ success: boolean; message: string; test_cases: any[] }>('/generator/test-cases', data),
+  
+  saveTestCases: (data: any[]) => 
+    api.post<{ success: boolean; message: string; test_cases: TestCase[] }>('/generator/test-cases/save', data),
   
   generateScripts: (data: {
     project_id: string
     test_case_ids: string[]
     language: string
     framework: string
-  }) => api.post('/generator/scripts', data)
+  }) => api.post<{ success: boolean; message: string; scripts: any[] }>('/generator/scripts', data),
+  
+  saveScripts: (data: any[]) => 
+    api.post<{ success: boolean; message: string; scripts: TestScript[] }>('/generator/scripts/save', data),
+  
+  getVectorStats: (projectId: string) => 
+    api.get<{ exists: boolean; count: number }>(`/generator/vector-stats/${projectId}`)
 }

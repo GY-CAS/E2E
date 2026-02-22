@@ -2,15 +2,16 @@
   <el-container class="main-layout">
     <el-aside width="220px" class="aside">
       <div class="logo">
-        <h1>E2E Test Generator</h1>
+        <el-icon class="logo-icon"><MagicStick /></el-icon>
+        <h1>E2E Test</h1>
       </div>
       <el-menu
         :default-active="activeMenu"
         class="side-menu"
         router
-        background-color="#304156"
-        text-color="#bfcbd9"
-        active-text-color="#409EFF"
+        background-color="transparent"
+        text-color="rgba(255, 255, 255, 0.7)"
+        active-text-color="#fff"
       >
         <el-menu-item index="/dashboard">
           <el-icon><DataAnalysis /></el-icon>
@@ -51,7 +52,7 @@
           </el-breadcrumb>
         </div>
         <div class="header-right">
-          <el-button type="primary" @click="$router.push('/test-cases/generate')">
+          <el-button type="primary" class="generate-btn" @click="$router.push('/test-cases/generate')">
             <el-icon><Plus /></el-icon>
             生成测试用例
           </el-button>
@@ -75,7 +76,8 @@ import {
   Tickets,
   DocumentCopy,
   Share,
-  Plus
+  Plus,
+  MagicStick
 } from '@element-plus/icons-vue'
 
 const route = useRoute()
@@ -90,50 +92,110 @@ const currentTitle = computed(() => route.meta.title as string || '')
 }
 
 .aside {
-  background-color: #304156;
+  background: linear-gradient(180deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
   
   .logo {
     height: 60px;
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: #263445;
+    gap: 10px;
+    background: rgba(255, 255, 255, 0.05);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    
+    .logo-icon {
+      font-size: 24px;
+      color: #667eea;
+    }
     
     h1 {
       color: #fff;
       font-size: 16px;
+      font-weight: 600;
       margin: 0;
       white-space: nowrap;
+      background: linear-gradient(90deg, #667eea, #764ba2);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
     }
   }
   
   .side-menu {
     border-right: none;
+    
+    :deep(.el-menu-item) {
+      margin: 4px 8px;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+      
+      &:hover {
+        background: rgba(255, 255, 255, 0.05);
+      }
+      
+      &.is-active {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        
+        .el-icon {
+          color: #fff;
+        }
+      }
+      
+      .el-icon {
+        color: rgba(255, 255, 255, 0.7);
+      }
+    }
   }
 }
 
 .header {
-  background-color: #fff;
-  box-shadow: 0 1px 4px rgba(0, 21, 41, 0.08);
+  background: rgba(26, 26, 46, 0.95);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 20px;
+  padding: 0 24px;
   
   .header-left {
     display: flex;
     align-items: center;
+    
+    :deep(.el-breadcrumb) {
+      .el-breadcrumb__inner,
+      .el-breadcrumb__separator {
+        color: rgba(255, 255, 255, 0.6);
+      }
+      
+      .el-breadcrumb__inner a,
+      .el-breadcrumb__inner.is-link {
+        color: rgba(255, 255, 255, 0.8);
+        
+        &:hover {
+          color: #667eea;
+        }
+      }
+    }
   }
   
   .header-right {
     display: flex;
     align-items: center;
     gap: 16px;
+    
+    .generate-btn {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border: none;
+      
+      &:hover {
+        opacity: 0.9;
+        transform: translateY(-1px);
+      }
+    }
   }
 }
 
 .main {
-  background-color: #f0f2f5;
-  padding: 20px;
+  background: transparent;
+  padding: 0;
 }
 </style>

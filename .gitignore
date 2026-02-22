@@ -1,0 +1,6 @@
+logs/
+uploads/
+frontend/node_modules/
+*.pyc
+__pycache__/
+docker/volumes/

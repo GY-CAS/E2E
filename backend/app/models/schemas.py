@@ -3,6 +3,7 @@ from typing import Optional, List, Dict, Any
 from datetime import datetime
 from uuid import UUID
 from enum import Enum
+import json
 
 
 class DocType(str, Enum):
@@ -107,8 +108,8 @@ class FunctionPointRead(BaseModel):
     document_id: Optional[UUID]
     name: str
     description: Optional[str]
-    test_type: TestType
-    priority: Priority
+    test_type: str
+    priority: str
     module: Optional[str]
     acceptance_criteria: Optional[str]
     status: str
@@ -117,6 +118,24 @@ class FunctionPointRead(BaseModel):
 
     class Config:
         from_attributes = True
+    
+    @classmethod
+    def from_orm_with_enum(cls, obj):
+        data = {
+            'id': obj.id,
+            'project_id': obj.project_id,
+            'document_id': obj.document_id,
+            'name': obj.name,
+            'description': obj.description,
+            'test_type': obj.test_type.value if hasattr(obj.test_type, 'value') else obj.test_type,
+            'priority': obj.priority.value if hasattr(obj.priority, 'value') else obj.priority,
+            'module': obj.module,
+            'acceptance_criteria': obj.acceptance_criteria,
+            'status': obj.status.value if hasattr(obj.status, 'value') else obj.status,
+            'created_at': obj.created_at,
+            'updated_at': obj.updated_at
+        }
+        return cls(**data)
 
 
 class TestCaseCreate(BaseModel):
@@ -154,9 +173,9 @@ class TestCaseRead(BaseModel):
     function_point_id: Optional[UUID]
     title: str
     description: Optional[str]
-    test_type: TestType
+    test_type: str
     test_category: str
-    priority: Priority
+    priority: str
     preconditions: Optional[str]
     test_steps: List[TestStepSchema]
     expected_results: Optional[str]
@@ -169,6 +188,29 @@ class TestCaseRead(BaseModel):
 
     class Config:
         from_attributes = True
+    
+    @classmethod
+    def from_orm_with_enum(cls, obj):
+        data = {
+            'id': obj.id,
+            'project_id': obj.project_id,
+            'function_point_id': obj.function_point_id,
+            'title': obj.title,
+            'description': obj.description,
+            'test_type': obj.test_type.value if hasattr(obj.test_type, 'value') else obj.test_type,
+            'test_category': obj.test_category,
+            'priority': obj.priority.value if hasattr(obj.priority, 'value') else obj.priority,
+            'preconditions': obj.preconditions,
+            'test_steps': obj.get_test_steps() if hasattr(obj, 'get_test_steps') else [],
+            'expected_results': obj.expected_results,
+            'test_data': json.loads(obj.test_data) if obj.test_data else None,
+            'tags': obj.get_tags() if hasattr(obj, 'get_tags') else [],
+            'status': obj.status.value if hasattr(obj.status, 'value') else obj.status,
+            'version': obj.version,
+            'created_at': obj.created_at,
+            'updated_at': obj.updated_at
+        }
+        return cls(**data)
 
 
 class TestScriptCreate(BaseModel):

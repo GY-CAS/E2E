@@ -1,0 +1,47 @@
+services:
+  redis:
+    # 使用 Redis 官方稳定版镜像
+    image: redis:7.0.4
+    # 容器名称，方便后续管理和网络访问
+    container_name: e2e-redis
+    # 容器异常退出时自动重启（生产级配置）
+    restart: always
+    # Redis 核心配置（可根据需求调整）
+    command:
+      # 启用持久化（RDB+AOF 混合模式）
+      - redis-server
+      - --appendonly yes
+      - --save 900 1
+      - --save 300 10
+      - --save 60 10000
+      # 设置密码（建议修改为自己的密码）
+      - --requirepass redis1234
+      # 绑定所有网卡（容器内无需限制）
+      - --bind 0.0.0.0
+    # 端口映射（宿主机 6379 映射到容器 6379，仅需宿主机访问时保留）
+    ports:
+      - "6379:6379"
+    # 数据持久化卷（避免容器删除后数据丢失）
+    volumes:
+      - redis-data:/data
+    # 资源限制（避免 Redis 占用过多服务器资源）
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+    # 关键：加入已有 milvus 网络
+    networks:
+      - milvus
+
+# 数据持久化卷（Docker 自动管理存储路径）
+volumes:
+  redis-data:
+
+# 声明使用已有 milvus 网络（核心配置）
+networks:
+  milvus:
+    # 标记为外部已存在的网络，不重新创建
+    external: true
+    # 必须和实际的 milvus 网络名称完全一致
+    name: milvus
