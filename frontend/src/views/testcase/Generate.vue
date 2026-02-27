@@ -84,35 +84,6 @@
                 </el-statistic>
               </el-col>
             </el-row>
-            
-            <div v-if="existingFunctionPoints.length > 0" class="existing-fps">
-              <el-divider>已有功能点</el-divider>
-              <el-alert type="info" :closable="false" show-icon style="margin-bottom: 12px;">
-                <template #title>
-                  <span>该项目已有 <strong>{{ existingFunctionPoints.length }}</strong> 个已保存的功能点</span>
-                </template>
-              </el-alert>
-              <el-table :data="existingFunctionPoints" stripe size="small" max-height="200">
-                <el-table-column prop="name" label="功能点名称" min-width="180" />
-                <el-table-column prop="test_type" label="测试类型" width="100">
-                  <template #default="{ row }">
-                    <el-tag :type="getTestTypeColor(row.test_type)" size="small">{{ getTestTypeLabel(row.test_type) }}</el-tag>
-                  </template>
-                </el-table-column>
-                <el-table-column prop="priority" label="优先级" width="80">
-                  <template #default="{ row }">
-                    <el-tag :type="getPriorityColor(row.priority)" size="small">{{ row.priority?.toUpperCase() }}</el-tag>
-                  </template>
-                </el-table-column>
-                <el-table-column prop="status" label="状态" width="80">
-                  <template #default="{ row }">
-                    <el-tag :type="row.status === 'approved' ? 'success' : 'warning'" size="small">
-                      {{ row.status === 'approved' ? '已审核' : '待审核' }}
-                    </el-tag>
-                  </template>
-                </el-table-column>
-              </el-table>
-            </div>
           </div>
         </div>
         
@@ -123,38 +94,38 @@
                 <span>该项目已有 <strong>{{ existingDocuments.length }}</strong> 个文档</span>
               </template>
             </el-alert>
-            <el-table :data="existingDocuments" stripe size="small" style="margin-bottom: 20px;">
-              <el-table-column prop="name" label="文档名称" min-width="200" show-overflow-tooltip />
-              <el-table-column prop="doc_type" label="类型" width="100">
-                <template #default="{ row }">
-                  <el-tag size="small">{{ row.doc_type || '文档' }}</el-tag>
-                </template>
-              </el-table-column>
-              <el-table-column prop="status" label="状态" width="100">
-                <template #default="{ row }">
-                  <el-tag :type="row.status === 'parsed' ? 'success' : (row.status === 'pending' ? 'warning' : 'info')" size="small">
-                    {{ row.status === 'parsed' ? '已解析' : (row.status === 'pending' ? '待解析' : '解析失败') }}
-                  </el-tag>
-                </template>
-              </el-table-column>
-              <el-table-column prop="file_size" label="大小" width="100">
-                <template #default="{ row }">
-                  {{ formatFileSize(row.file_size) }}
-                </template>
-              </el-table-column>
-              <el-table-column prop="created_at" label="上传时间" width="160">
-                <template #default="{ row }">
-                  {{ formatDate(row.created_at) }}
-                </template>
-              </el-table-column>
-              <el-table-column label="操作" width="150" fixed="right">
-                <template #default="{ row }">
-                  <el-button type="primary" link size="small" @click="viewDocument(row)">查看</el-button>
-                  <el-button type="warning" link size="small" @click="reparseDocument(row)" :disabled="row.status === 'parsed'">重解析</el-button>
-                  <el-button type="danger" link size="small" @click="deleteDocument(row)">删除</el-button>
-                </template>
-              </el-table-column>
-            </el-table>
+            <div class="document-list">
+              <div v-for="doc in existingDocuments" :key="doc.id" class="document-item">
+                <div class="doc-icon">
+                  <el-icon><DocumentIcon /></el-icon>
+                </div>
+                <div class="doc-info">
+                  <div class="doc-name">{{ doc.name }}</div>
+                  <div class="doc-meta">
+                    <span class="meta-tag">{{ getDocTypeLabel(doc.doc_type) }}</span>
+                    <span class="meta-size">{{ formatFileSize(doc.file_size) }}</span>
+                    <span class="meta-date">{{ formatDate(doc.created_at) }}</span>
+                  </div>
+                </div>
+                <div class="doc-status" :class="doc.status">
+                  {{ getDocStatusLabel(doc.status) }}
+                </div>
+                <div class="doc-actions">
+                  <el-button type="primary" text size="small" @click="viewDocument(doc)">
+                    <el-icon><View /></el-icon>
+                    查看
+                  </el-button>
+                  <el-button type="warning" text size="small" @click="reparseDocument(doc)" :disabled="doc.status === 'parsed'">
+                    <el-icon><Refresh /></el-icon>
+                    重解析
+                  </el-button>
+                  <el-button type="danger" text size="small" @click="deleteDocument(doc)">
+                    <el-icon><Delete /></el-icon>
+                    删除
+                  </el-button>
+                </div>
+              </div>
+            </div>
             <el-divider>继续上传新文档</el-divider>
           </div>
           
@@ -180,13 +151,17 @@
           
           <el-divider>或者</el-divider>
           
-          <el-form label-width="100px">
-            <el-form-item label="需求描述">
+          <el-form label-width="auto">
+            <el-form-item>
+              <template #label>
+                <span class="form-label">需求描述</span>
+              </template>
               <el-input
                 v-model="formData.userRequirements"
                 type="textarea"
                 :rows="5"
                 placeholder="请输入您的测试需求描述，例如：&#10;- 测试用户登录功能&#10;- 测试API接口响应时间&#10;- 测试数据安全性"
+                class="full-width-textarea"
               />
             </el-form-item>
           </el-form>
@@ -222,69 +197,77 @@
               </el-empty>
             </div>
             
-            <el-table v-else :data="allFunctionPoints" stripe max-height="450">
-              <el-table-column prop="name" label="功能点名称" min-width="200">
-                <template #default="{ row }">
-                  <el-input v-if="row.editing" v-model="row.name" size="small" />
-                  <span v-else>
-                    {{ row.name }}
-                    <el-tag v-if="row.isExisting" type="info" size="small" style="margin-left: 4px;">已有</el-tag>
-                    <el-tag v-else-if="row.isNew" type="success" size="small" style="margin-left: 4px;">新增</el-tag>
-                  </span>
-                </template>
-              </el-table-column>
-              <el-table-column prop="test_type" label="测试类型" width="120">
-                <template #default="{ row }">
-                  <el-select v-if="row.editing" v-model="row.test_type" size="small">
-                    <el-option label="功能测试" value="functional" />
-                    <el-option label="性能测试" value="performance" />
-                    <el-option label="安全测试" value="security" />
-                    <el-option label="可靠性测试" value="reliability" />
-                  </el-select>
-                  <el-tag v-else :type="getTestTypeColor(row.test_type)">{{ getTestTypeLabel(row.test_type) }}</el-tag>
-                </template>
-              </el-table-column>
-              <el-table-column prop="priority" label="优先级" width="100">
-                <template #default="{ row }">
-                  <el-select v-if="row.editing" v-model="row.priority" size="small">
-                    <el-option label="P0" value="p0" />
-                    <el-option label="P1" value="p1" />
-                    <el-option label="P2" value="p2" />
-                    <el-option label="P3" value="p3" />
-                    <el-option label="P4" value="p4" />
-                  </el-select>
-                  <el-tag v-else :type="getPriorityColor(row.priority)">{{ row.priority?.toUpperCase() }}</el-tag>
-                </template>
-              </el-table-column>
-              <el-table-column prop="status" label="状态" width="90">
-                <template #default="{ row }">
-                  <el-tag :type="row.status === 'approved' ? 'success' : (row.status === 'rejected' ? 'danger' : 'warning')" size="small">
-                    {{ row.status === 'approved' ? '已审核' : (row.status === 'rejected' ? '已拒绝' : '待审核') }}
-                  </el-tag>
-                </template>
-              </el-table-column>
-              <el-table-column prop="module" label="模块" width="100">
-                <template #default="{ row }">
-                  <el-input v-if="row.editing" v-model="row.module" size="small" />
-                  <span v-else>{{ row.module || '-' }}</span>
-                </template>
-              </el-table-column>
-              <el-table-column label="操作" width="220" fixed="right">
-                <template #default="{ row, $index }">
-                  <template v-if="row.editing">
-                    <el-button type="success" link @click="saveFpEdit(row)">保存</el-button>
-                    <el-button link @click="cancelFpEdit(row)">取消</el-button>
+            <div v-else class="function-point-list">
+              <div 
+                v-for="(fp, index) in allFunctionPoints" 
+                :key="index"
+                class="function-point-item"
+                :class="{ 'editing': fp.editing }"
+              >
+                <div class="fp-icon" :class="fp.test_type">
+                  <el-icon v-if="fp.test_type === 'functional'"><DocumentIcon /></el-icon>
+                  <el-icon v-else-if="fp.test_type === 'performance'"><Timer /></el-icon>
+                  <el-icon v-else-if="fp.test_type === 'security'"><Lock /></el-icon>
+                  <el-icon v-else><SetUp /></el-icon>
+                </div>
+                <div class="fp-info">
+                  <div class="fp-name">
+                    <el-input v-if="fp.editing" v-model="fp.name" size="small" />
+                    <span v-else>
+                      {{ fp.name }}
+                      <el-tag v-if="fp.isExisting" type="info" size="small" style="margin-left: 8px;">已有</el-tag>
+                      <el-tag v-else-if="fp.isNew" type="success" size="small" style="margin-left: 8px;">新增</el-tag>
+                    </span>
+                  </div>
+                  <div class="fp-meta">
+                    <span class="meta-tag">{{ getTestTypeLabel(fp.test_type) }}</span>
+                    <span class="meta-priority">{{ fp.priority?.toUpperCase() }}</span>
+                    <span class="meta-module">{{ fp.module || '-' }}</span>
+                  </div>
+                </div>
+                <div class="fp-status" :class="fp.status">
+                  {{ fp.status === 'approved' ? '已审核' : (fp.status === 'rejected' ? '已拒绝' : '待审核') }}
+                </div>
+                <div class="fp-actions">
+                  <template v-if="fp.editing">
+                    <el-button type="success" text size="small" @click="saveFpEdit(fp)">
+                      <el-icon><Check /></el-icon>
+                      保存
+                    </el-button>
+                    <el-button text size="small" @click="cancelFpEdit(fp)">
+                      <el-icon><Close /></el-icon>
+                      取消
+                    </el-button>
                   </template>
                   <template v-else>
-                    <el-button v-if="row.isExisting && row.status !== 'approved'" type="success" link @click="approveExistingFp(row)">审核</el-button>
-                    <el-button v-if="row.isExisting && row.status !== 'rejected'" type="warning" link @click="rejectExistingFp(row)">拒绝</el-button>
-                    <el-button v-if="!row.isExisting" type="primary" link @click="editFp(row)">编辑</el-button>
-                    <el-button v-if="!row.isExisting" type="warning" link @click="refineFp(row)">AI优化</el-button>
-                    <el-button v-if="!row.isExisting" type="danger" link @click="removeFunctionPoint($index)">删除</el-button>
+                    <el-button type="primary" text size="small" @click="viewFunctionPoint(fp)">
+                      <el-icon><View /></el-icon>
+                      查看
+                    </el-button>
+                    <el-button type="primary" text size="small" @click="editFp(fp)">
+                      <el-icon><Edit /></el-icon>
+                      编辑
+                    </el-button>
+                    <el-button v-if="!fp.isExisting" type="warning" text size="small" @click="refineFp(fp)">
+                      <el-icon><MagicStick /></el-icon>
+                      AI优化
+                    </el-button>
+                    <el-button type="success" text size="small" @click="approveFp(fp)" :disabled="fp.status === 'approved'">
+                      <el-icon><Check /></el-icon>
+                      通过
+                    </el-button>
+                    <el-button type="warning" text size="small" @click="rejectFp(fp)" :disabled="fp.status === 'rejected'">
+                      <el-icon><Close /></el-icon>
+                      拒绝
+                    </el-button>
+                    <el-button type="danger" text size="small" @click="deleteFunctionPoint(fp)">
+                      <el-icon><Delete /></el-icon>
+                      删除
+                    </el-button>
                   </template>
-                </template>
-              </el-table-column>
-            </el-table>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
         
@@ -308,55 +291,57 @@
             </el-button>
           </div>
           
-          <el-table :data="allFunctionPoints" stripe max-height="350" style="margin-top: 16px;">
-            <el-table-column type="index" label="#" width="50" />
-            <el-table-column prop="name" label="功能点名称" min-width="180">
-              <template #default="{ row }">
-                {{ row.name }}
-                <el-tag v-if="row.isExisting" type="info" size="small" style="margin-left: 4px;">已有</el-tag>
-                <el-tag v-else-if="row.isNew" type="success" size="small" style="margin-left: 4px;">新增</el-tag>
-              </template>
-            </el-table-column>
-            <el-table-column prop="test_type" label="测试类型" width="100">
-              <template #default="{ row }">
-                <el-tag :type="getTestTypeColor(row.test_type)">{{ getTestTypeLabel(row.test_type) }}</el-tag>
-              </template>
-            </el-table-column>
-            <el-table-column prop="priority" label="优先级" width="80">
-              <template #default="{ row }">
-                <el-tag :type="getPriorityColor(row.priority)">{{ row.priority?.toUpperCase() }}</el-tag>
-              </template>
-            </el-table-column>
-            <el-table-column prop="status" label="状态" width="100">
-              <template #default="{ row }">
-                <el-tag :type="row.status === 'approved' ? 'success' : (row.status === 'rejected' ? 'danger' : 'warning')">
-                  {{ row.status === 'approved' ? '已审核' : (row.status === 'rejected' ? '已拒绝' : '待审核') }}
-                </el-tag>
-              </template>
-            </el-table-column>
-            <el-table-column prop="module" label="模块" width="100" />
-            <el-table-column prop="description" label="描述" min-width="150" show-overflow-tooltip />
-            <el-table-column label="操作" width="150" fixed="right">
-              <template #default="{ row }">
+          <div v-if="allFunctionPoints.length > 0" class="function-point-list" style="margin-top: 16px;">
+            <div 
+              v-for="(fp, index) in allFunctionPoints" 
+              :key="index"
+              class="function-point-item"
+            >
+              <div class="fp-icon" :class="fp.test_type">
+                <el-icon v-if="fp.test_type === 'functional'"><DocumentIcon /></el-icon>
+                <el-icon v-else-if="fp.test_type === 'performance'"><Timer /></el-icon>
+                <el-icon v-else-if="fp.test_type === 'security'"><Lock /></el-icon>
+                <el-icon v-else><SetUp /></el-icon>
+              </div>
+              <div class="fp-info">
+                <div class="fp-name">
+                  {{ fp.name }}
+                  <el-tag v-if="fp.isExisting" type="info" size="small" style="margin-left: 8px;">已有</el-tag>
+                  <el-tag v-else-if="fp.isNew" type="success" size="small" style="margin-left: 8px;">新增</el-tag>
+                </div>
+                <div class="fp-meta">
+                  <span class="meta-tag">{{ getTestTypeLabel(fp.test_type) }}</span>
+                  <span class="meta-priority">{{ fp.priority?.toUpperCase() }}</span>
+                  <span class="meta-module">{{ fp.module || '-' }}</span>
+                </div>
+              </div>
+              <div class="fp-status" :class="fp.status">
+                {{ fp.status === 'approved' ? '已审核' : (fp.status === 'rejected' ? '已拒绝' : '待审核') }}
+              </div>
+              <div class="fp-actions">
                 <el-button 
                   type="success" 
-                  link 
-                  @click="reviewFp(row, 'approved')" 
-                  :disabled="row.status === 'approved'"
+                  text 
+                  size="small"
+                  @click="reviewFp(fp, 'approved')" 
+                  :disabled="fp.status === 'approved'"
                 >
+                  <el-icon><Check /></el-icon>
                   通过
                 </el-button>
                 <el-button 
                   type="danger" 
-                  link 
-                  @click="reviewFp(row, 'rejected')" 
-                  :disabled="row.status === 'rejected'"
+                  text 
+                  size="small"
+                  @click="reviewFp(fp, 'rejected')" 
+                  :disabled="fp.status === 'rejected'"
                 >
+                  <el-icon><Close /></el-icon>
                   拒绝
                 </el-button>
-              </template>
-            </el-table-column>
-          </el-table>
+              </div>
+            </div>
+          </div>
           
           <div class="review-actions">
             <el-button @click="currentStep = 2">
@@ -371,24 +356,49 @@
         </div>
         
         <div v-show="currentStep === 4" class="step-panel">
-          <div class="generating" v-if="isGenerating">
-            <el-icon class="is-loading" :size="40"><Loading /></el-icon>
-            <p>{{ generateStatus }}</p>
-            <el-progress :percentage="generateProgress" :stroke-width="8" style="width: 300px; margin-top: 20px;" />
+          <!-- 优化后的生成加载动画 -->
+          <div class="generating-container" v-if="isGenerating">
+            <div class="pulse-loader">
+              <div class="pulse-circle"></div>
+              <div class="pulse-circle"></div>
+              <div class="pulse-circle"></div>
+              <div class="loader-icon">
+                <el-icon><MagicStick /></el-icon>
+              </div>
+            </div>
+            <div class="progress-info">
+              <div class="progress-percentage">{{ generateProgress }}%</div>
+              <div class="progress-status">{{ generateStatus }}</div>
+              <div class="progress-bar-wrapper">
+                <div class="progress-bar-fill" :style="{ width: generateProgress + '%' }"></div>
+              </div>
+            </div>
+            <div class="generation-details">
+              <span class="detail-text">{{ generateDetailText }}</span>
+            </div>
           </div>
-          <div v-else>
-            <el-alert type="info" :closable="false" show-icon style="margin-bottom: 16px;">
-              <template #title>
-                <span>已确认 <strong>{{ savedFpIds.length }}</strong> 个功能点，可用于生成测试用例</span>
-              </template>
-            </el-alert>
+          
+          <div v-else class="generated-content">
+            <!-- 顶部信息提示 -->
+            <div class="info-alert">
+              <div class="alert-icon">
+                <el-icon><InfoFilled /></el-icon>
+              </div>
+              <div class="alert-content">
+                已确认 <strong>{{ savedFpIds.length || existingFunctionPoints.length }}</strong> 个功能点，可用于生成测试用例
+              </div>
+            </div>
             
-            <div class="tc-header">
-              <span>测试用例列表 ({{ generatedTestCases.length }} 个)</span>
-              <div class="tc-actions">
-                <el-button type="primary" @click="aiGenerateTestCases" :loading="isAiGenerating">
+            <!-- 操作按钮区 -->
+            <div class="action-bar">
+              <div class="action-left">
+                <span class="list-title">测试用例列表</span>
+                <span class="list-count">{{ generatedTestCases.length }} 个</span>
+              </div>
+              <div class="action-right">
+                <el-button type="primary" class="ai-btn" @click="aiGenerateTestCases" :loading="isAiGenerating">
                   <el-icon><MagicStick /></el-icon>
-                  AI辅助生成
+                  AI智能生成
                 </el-button>
                 <el-button @click="showAddTcDialog">
                   <el-icon><Plus /></el-icon>
@@ -397,53 +407,98 @@
               </div>
             </div>
             
-            <div v-if="generatedTestCases.length === 0" class="empty-hint">
-              <el-empty description="暂无测试用例，请点击「AI辅助生成」或「手动添加」">
-                <el-button type="primary" @click="aiGenerateTestCases" :loading="isAiGenerating">
-                  <el-icon><MagicStick /></el-icon>
-                  AI辅助生成
-                </el-button>
-              </el-empty>
+            <!-- 优化后的空状态 -->
+            <div v-if="generatedTestCases.length === 0" class="empty-state">
+              <div class="empty-icon">
+                <el-icon><DocumentAdd /></el-icon>
+              </div>
+              <p class="empty-title">暂无测试用例</p>
+              <p class="empty-desc">点击下方按钮，AI将根据功能点自动生成测试用例</p>
+              <el-button type="primary" size="large" class="empty-btn" @click="aiGenerateTestCases" :loading="isAiGenerating">
+                <el-icon><MagicStick /></el-icon>
+                AI智能生成
+              </el-button>
             </div>
             
-            <el-table v-else :data="generatedTestCases" stripe max-height="400">
-              <el-table-column type="selection" width="50" />
-              <el-table-column type="index" label="#" width="50" />
-              <el-table-column prop="title" label="用例标题" min-width="180" show-overflow-tooltip />
-              <el-table-column prop="test_type" label="测试类型" width="100">
-                <template #default="{ row }">
-                  <el-tag :type="getTestTypeColor(row.test_type)" size="small">{{ getTestTypeLabel(row.test_type) }}</el-tag>
-                </template>
-              </el-table-column>
-              <el-table-column prop="test_category" label="分类" width="100" show-overflow-tooltip />
-              <el-table-column prop="priority" label="优先级" width="80">
-                <template #default="{ row }">
-                  <el-tag :type="getPriorityColor(row.priority)" size="small">{{ row.priority?.toUpperCase() }}</el-tag>
-                </template>
-              </el-table-column>
-              <el-table-column prop="status" label="状态" width="90">
-                <template #default="{ row }">
-                  <el-tag :type="getTcStatusColor(row.status)" size="small">{{ getTcStatusLabel(row.status) }}</el-tag>
-                </template>
-              </el-table-column>
-              <el-table-column label="操作" width="220" fixed="right">
-                <template #default="{ row, $index }">
-                  <el-button type="primary" link size="small" @click="viewTestCase(row)">查看</el-button>
-                  <el-button type="success" link size="small" @click="approveTc(row)" :disabled="row.status === 'approved'">通过</el-button>
-                  <el-button type="warning" link size="small" @click="rejectTc(row)" :disabled="row.status === 'approved' || row.status === 'rejected'">拒绝</el-button>
-                  <el-button type="danger" link size="small" @click="removeTestCase($index)">删除</el-button>
-                </template>
-              </el-table-column>
-            </el-table>
+            <!-- 优化后的卡片式用例列表 -->
+            <div class="testcase-list" v-else>
+              <div 
+                v-for="(tc, index) in generatedTestCases" 
+                :key="index"
+                class="testcase-item"
+              >
+                <div class="testcase-icon" :class="tc.test_type">
+                  <el-icon v-if="tc.test_type === 'functional'"><DocumentIcon /></el-icon>
+                  <el-icon v-else-if="tc.test_type === 'performance'"><Timer /></el-icon>
+                  <el-icon v-else-if="tc.test_type === 'security'"><Lock /></el-icon>
+                  <el-icon v-else><SetUp /></el-icon>
+                </div>
+                <div class="testcase-info">
+                  <div class="testcase-title">{{ tc.title }}</div>
+                  <div class="testcase-meta">
+                    <span class="meta-tag">{{ getTestTypeLabel(tc.test_type) }}</span>
+                    <span class="meta-priority">{{ tc.priority?.toUpperCase() }}</span>
+                  </div>
+                </div>
+                <div class="testcase-status" :class="tc.status || 'draft'">
+                  {{ getTcStatusLabel(tc.status) }}
+                </div>
+                <div class="testcase-actions">
+                  <el-button type="primary" text size="small" @click="viewTestCase(tc)">
+                    <el-icon><View /></el-icon>
+                    查看
+                  </el-button>
+                  <el-button type="success" text size="small" @click="approveTc(tc)" :disabled="tc.status === 'approved'">
+                    <el-icon><Check /></el-icon>
+                    通过
+                  </el-button>
+                  <el-button type="warning" text size="small" @click="rejectTc(tc)" :disabled="tc.status === 'approved' || tc.status === 'rejected'">
+                    <el-icon><Close /></el-icon>
+                    拒绝
+                  </el-button>
+                  <el-button type="danger" text size="small" @click="removeTestCase(index)">
+                    <el-icon><Delete /></el-icon>
+                    删除
+                  </el-button>
+                </div>
+              </div>
+            </div>
             
-            <div class="final-actions" v-if="generatedTestCases.length > 0">
-              <el-button type="success" size="large" @click="approveAllTcs" :disabled="pendingTcCount === 0">
-                全部通过 ({{ pendingTcCount }} 个待审核)
-              </el-button>
-              <el-button type="primary" size="large" @click="saveAllTestCases" :loading="isSaving">
-                <el-icon><Check /></el-icon>
-                保存审核通过的用例 ({{ approvedTcCount }} 个)
-              </el-button>
+            <!-- 优化后的底部审核区 -->
+            <div class="final-review-section" v-if="generatedTestCases.length > 0">
+              <div class="review-summary">
+                <div class="summary-title">审核统计</div>
+                <div class="summary-stats">
+                  <div class="stat-item">
+                    <span class="stat-icon total">
+                      <el-icon><DocumentIcon /></el-icon>
+                    </span>
+                    <span>总计 <span class="stat-number">{{ generatedTestCases.length }}</span> 个</span>
+                  </div>
+                  <div class="stat-item">
+                    <span class="stat-icon approved">
+                      <el-icon><Check /></el-icon>
+                    </span>
+                    <span>已通过 <span class="stat-number">{{ approvedTcCount }}</span> 个</span>
+                  </div>
+                  <div class="stat-item">
+                    <span class="stat-icon pending">
+                      <el-icon><Clock /></el-icon>
+                    </span>
+                    <span>待审核 <span class="stat-number">{{ pendingTcCount }}</span> 个</span>
+                  </div>
+                </div>
+              </div>
+              <div class="review-actions">
+                <el-button type="success" size="large" @click="approveAllTcs" :disabled="pendingTcCount === 0">
+                  <el-icon><Check /></el-icon>
+                  全部通过
+                </el-button>
+                <el-button type="primary" size="large" @click="saveAllTestCases" :loading="isSaving" :disabled="approvedTcCount === 0">
+                  <el-icon><FolderChecked /></el-icon>
+                  保存已通过 ({{ approvedTcCount }})
+                </el-button>
+              </div>
             </div>
           </div>
         </div>
@@ -468,7 +523,42 @@
         </el-button>
       </div>
     </div>
-  </div>
+    
+    <el-dialog v-model="viewFpDialogVisible" title="查看功能点" width="600px">
+      <el-descriptions :column="2" border>
+        <el-descriptions-item label="功能点名称">
+          {{ currentViewFp?.name }}
+        </el-descriptions-item>
+        <el-descriptions-item label="测试类型">
+          <el-tag :type="getTestTypeColor(currentViewFp?.test_type)">
+            {{ getTestTypeLabel(currentViewFp?.test_type) }}
+          </el-tag>
+        </el-descriptions-item>
+        <el-descriptions-item label="优先级">
+          <el-tag :type="getPriorityColor(currentViewFp?.priority)">
+            {{ currentViewFp?.priority?.toUpperCase() }}
+          </el-tag>
+        </el-descriptions-item>
+        <el-descriptions-item label="状态">
+          <el-tag :type="currentViewFp?.status === 'approved' ? 'success' : (currentViewFp?.status === 'rejected' ? 'danger' : 'warning')">
+            {{ currentViewFp?.status === 'approved' ? '已审核' : (currentViewFp?.status === 'rejected' ? '已拒绝' : '待审核') }}
+          </el-tag>
+        </el-descriptions-item>
+        <el-descriptions-item label="模块" :span="2">
+          {{ currentViewFp?.module || '-' }}
+        </el-descriptions-item>
+        <el-descriptions-item label="描述" :span="2">
+          {{ currentViewFp?.description || '-' }}
+        </el-descriptions-item>
+        <el-descriptions-item label="来源" :span="2">
+          <el-tag v-if="currentViewFp?.isExisting" type="info">已有</el-tag>
+          <el-tag v-else type="success">新增</el-tag>
+        </el-descriptions-item>
+      </el-descriptions>
+      <template #footer>
+        <el-button @click="viewFpDialogVisible = false">关闭</el-button>
+      </template>
+    </el-dialog>
     
     <el-dialog v-model="refineDialogVisible" title="AI优化功能点" width="500px">
       <el-form label-width="80px">
@@ -565,24 +655,53 @@
       </template>
     </el-dialog>
     
-    <el-dialog v-model="viewTcDialogVisible" :title="currentViewTc?.title" width="700px">
+    <el-dialog v-model="viewTcDialogVisible" :title="currentViewTc?.title" width="720px" class="tc-detail-dialog">
       <el-descriptions :column="2" border>
         <el-descriptions-item label="测试类型">{{ getTestTypeLabel(currentViewTc?.test_type) }}</el-descriptions-item>
         <el-descriptions-item label="优先级">{{ currentViewTc?.priority?.toUpperCase() }}</el-descriptions-item>
-        <el-descriptions-item label="测试分类">{{ currentViewTc?.test_category }}</el-descriptions-item>
-        <el-descriptions-item label="前置条件">{{ currentViewTc?.preconditions || '-' }}</el-descriptions-item>
+        <el-descriptions-item label="测试分类">{{ currentViewTc?.test_category || '-' }}</el-descriptions-item>
+        <el-descriptions-item label="状态">
+          <span class="status-text" :class="currentViewTc?.status || 'draft'">
+            {{ getTcStatusLabel(currentViewTc?.status) }}
+          </span>
+        </el-descriptions-item>
+        <el-descriptions-item label="前置条件" :span="2">{{ currentViewTc?.preconditions || '-' }}</el-descriptions-item>
         <el-descriptions-item label="描述" :span="2">{{ currentViewTc?.description || '-' }}</el-descriptions-item>
         <el-descriptions-item label="预期结果" :span="2">{{ currentViewTc?.expected_results || '-' }}</el-descriptions-item>
       </el-descriptions>
       
       <div class="test-steps" v-if="Array.isArray(currentViewTc?.test_steps) && currentViewTc.test_steps.length > 0">
         <h4>测试步骤</h4>
-        <el-table :data="currentViewTc.test_steps" stripe size="small">
-          <el-table-column prop="step_num" label="步骤" width="60" />
-          <el-table-column prop="action" label="操作" />
-          <el-table-column prop="expected_result" label="预期结果" />
-        </el-table>
+        <div class="steps-list">
+          <div v-for="(step, idx) in currentViewTc.test_steps" :key="idx" class="step-item">
+            <div class="step-number">{{ step.step_num || idx + 1 }}</div>
+            <div class="step-content">
+              <div class="step-action">{{ step.action }}</div>
+              <div class="step-expected" v-if="step.expected_result">
+                <span class="expected-label">预期:</span> {{ step.expected_result }}
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
+      <div class="no-steps" v-else>
+        <el-icon><List /></el-icon>
+        <span>暂无测试步骤</span>
+      </div>
+      
+      <template #footer>
+        <div class="dialog-footer-actions">
+          <el-button @click="viewTcDialogVisible = false">关闭</el-button>
+          <el-button type="success" @click="approveCurrentTc" :disabled="currentViewTc?.status === 'approved'">
+            <el-icon><Check /></el-icon>
+            通过审核
+          </el-button>
+          <el-button type="danger" @click="rejectCurrentTc" :disabled="currentViewTc?.status === 'approved' || currentViewTc?.status === 'rejected'">
+            <el-icon><Close /></el-icon>
+            拒绝
+          </el-button>
+        </div>
+      </template>
     </el-dialog>
   </div>
 </template>
@@ -591,8 +710,8 @@
 import { ref, reactive, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { UploadFilled, Loading, Plus, MagicStick, Back, Right, Check, Close } from '@element-plus/icons-vue'
-import { projectApi, documentApi, functionPointApi, generatorApi, type Project, type Document, type ProjectStats, type FunctionPoint } from '@/api'
+import { UploadFilled, Loading, Plus, MagicStick, Back, Right, Check, Close, Document as DocumentIcon, Timer, Lock, SetUp, View, Delete, Clock, FolderChecked, DocumentAdd, InfoFilled, List, Refresh, Edit } from '@element-plus/icons-vue'
+import { projectApi, documentApi, functionPointApi, generatorApi, testCaseApi, type Project, type Document, type ProjectStats, type FunctionPoint } from '@/api'
 import { useGenerateStore } from '@/stores/generate'
 
 const router = useRouter()
@@ -651,6 +770,9 @@ const newTcData = reactive({
 const viewTcDialogVisible = ref(false)
 const currentViewTc = ref<any>(null)
 
+const viewFpDialogVisible = ref(false)
+const currentViewFp = ref<any>(null)
+
 const allFunctionPoints = computed(() => {
   const existing = existingFunctionPoints.value.map(fp => ({
     ...fp,
@@ -664,7 +786,20 @@ const allFunctionPoints = computed(() => {
     isNew: true,
     status: fp.status || 'pending'
   }))
-  return [...existing, ...generated]
+  
+  const all = [...existing, ...generated]
+  const uniqueFps = []
+  const seenNames = new Set()
+  
+  for (const fp of all) {
+    const normalizedName = fp.name.trim().toLowerCase()
+    if (!seenNames.has(normalizedName)) {
+      seenNames.add(normalizedName)
+      uniqueFps.push(fp)
+    }
+  }
+  
+  return uniqueFps
 })
 
 const approvedFpCount = computed(() => {
@@ -732,11 +867,29 @@ const tcStatusColors: Record<string, string> = {
   rejected: 'danger'
 }
 
+const docTypeLabels: Record<string, string> = {
+  requirement: '需求文档',
+  spec: '规格说明书',
+  design: '设计文档',
+  api: '接口说明',
+  manual: '用户手册',
+  image: '图片'
+}
+
+const docStatusLabels: Record<string, string> = {
+  pending: '待解析',
+  processing: '解析中',
+  parsed: '已解析',
+  failed: '解析失败'
+}
+
 const getTestTypeLabel = (type: string) => testTypeLabels[type] || type
 const getTestTypeColor = (type: string) => testTypeColors[type] || 'info'
 const getPriorityColor = (priority: string) => priorityColors[priority] || 'info'
 const getTcStatusLabel = (status: string) => tcStatusLabels[status] || '待审核'
 const getTcStatusColor = (status: string) => tcStatusColors[status] || 'warning'
+const getDocTypeLabel = (type: string) => docTypeLabels[type] || type || '文档'
+const getDocStatusLabel = (status: string) => docStatusLabels[status] || status
 
 const formatDate = (dateStr: string) => {
   if (!dateStr) return '-'
@@ -796,7 +949,7 @@ const loadExistingFunctionPoints = async () => {
   try {
     const fps = await functionPointApi.list({ project_id: formData.projectId })
     existingFunctionPoints.value = fps || []
-    generatedFunctionPoints.value = fps || []
+    generatedFunctionPoints.value = []
   } catch (error) {
     console.error('Failed to load function points:', error)
   }
@@ -899,6 +1052,11 @@ const uploadDocuments = async () => {
   } catch (error) {
     console.error('Failed to upload documents:', error)
     ElMessage.error('文档上传失败')
+  } finally {
+    isGenerating.value = false
+    generateProgress.value = 0
+  }
+}
 
 const goToStep = async (step: number) => {
   if (!formData.projectId && step > 0) {
@@ -924,11 +1082,6 @@ const loadExistingTestCases = async () => {
     generatedTestCases.value = tcs
   } catch (error) {
     console.error('Failed to load test cases:', error)
-  }
-}
-  } finally {
-    isGenerating.value = false
-    generateProgress.value = 0
   }
 }
 
@@ -1204,9 +1357,20 @@ const approveAllTcs = () => {
   ElMessage.success('已全部审核通过')
 }
 
-const editFp = (row: any) => {
-  row.editing = true
-  row.originalData = { ...row }
+const editFp = (fp: any) => {
+  if (fp.isExisting) {
+    const index = existingFunctionPoints.value.findIndex(efp => efp.id === fp.id)
+    if (index !== -1) {
+      existingFunctionPoints.value[index].editing = true
+      existingFunctionPoints.value[index].originalData = { ...existingFunctionPoints.value[index] }
+    }
+  } else {
+    const index = generatedFunctionPoints.value.findIndex(gfp => gfp === fp)
+    if (index !== -1) {
+      generatedFunctionPoints.value[index].editing = true
+      generatedFunctionPoints.value[index].originalData = { ...generatedFunctionPoints.value[index] }
+    }
+  }
 }
 
 const approveExistingFp = async (row: any) => {
@@ -1232,6 +1396,24 @@ const rejectExistingFp = async (row: any) => {
   } catch (error) {
     console.error('Failed to reject:', error)
     ElMessage.error('操作失败')
+  }
+}
+
+const approveFp = async (fp: any) => {
+  if (fp.isExisting) {
+    await approveExistingFp(fp)
+  } else {
+    fp.status = 'approved'
+    ElMessage.success('功能点审核通过')
+  }
+}
+
+const rejectFp = async (fp: any) => {
+  if (fp.isExisting) {
+    await rejectExistingFp(fp)
+  } else {
+    fp.status = 'rejected'
+    ElMessage.success('功能点已拒绝')
   }
 }
 
@@ -1304,18 +1486,68 @@ const rejectAllFps = async () => {
   ElMessage.success('已全部拒绝')
 }
 
-const saveFpEdit = (row: any) => {
-  row.editing = false
-  delete row.originalData
+const saveFpEdit = (fp: any) => {
+  if (fp.isExisting) {
+    const index = existingFunctionPoints.value.findIndex(efp => efp.id === fp.id)
+    if (index !== -1) {
+      existingFunctionPoints.value[index].editing = false
+      delete existingFunctionPoints.value[index].originalData
+    }
+  } else {
+    const index = generatedFunctionPoints.value.findIndex(gfp => gfp === fp)
+    if (index !== -1) {
+      generatedFunctionPoints.value[index].editing = false
+      delete generatedFunctionPoints.value[index].originalData
+    }
+  }
 }
 
-const cancelFpEdit = (row: any) => {
-  Object.assign(row, row.originalData)
-  row.editing = false
+const cancelFpEdit = (fp: any) => {
+  if (fp.isExisting) {
+    const index = existingFunctionPoints.value.findIndex(efp => efp.id === fp.id)
+    if (index !== -1) {
+      Object.assign(existingFunctionPoints.value[index], existingFunctionPoints.value[index].originalData)
+      existingFunctionPoints.value[index].editing = false
+      delete existingFunctionPoints.value[index].originalData
+    }
+  } else {
+    const index = generatedFunctionPoints.value.findIndex(gfp => gfp === fp)
+    if (index !== -1) {
+      Object.assign(generatedFunctionPoints.value[index], generatedFunctionPoints.value[index].originalData)
+      generatedFunctionPoints.value[index].editing = false
+      delete generatedFunctionPoints.value[index].originalData
+    }
+  }
 }
 
-const removeFunctionPoint = (index: number) => {
-  generatedFunctionPoints.value.splice(index, 1)
+const removeFunctionPoint = (fp: any) => {
+  ElMessageBox.confirm(
+    `确定要删除功能点「${fp.name}」吗？`,
+    '删除确认',
+    {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    }
+  ).then(() => {
+    if (fp.isExisting) {
+      const index = existingFunctionPoints.value.findIndex(efp => efp.id === fp.id)
+      if (index !== -1) {
+        existingFunctionPoints.value.splice(index, 1)
+      }
+    } else {
+      const index = generatedFunctionPoints.value.findIndex(gfp => gfp === fp)
+      if (index !== -1) {
+        generatedFunctionPoints.value.splice(index, 1)
+      }
+    }
+    ElMessage.success('功能点删除成功')
+  }).catch(() => {})
+}
+
+const viewFunctionPoint = (fp: any) => {
+  currentViewFp.value = fp
+  viewFpDialogVisible.value = true
 }
 
 const refineFp = (row: any) => {
@@ -1412,6 +1644,30 @@ const viewTestCase = (row: any) => {
   currentViewTc.value = row
   viewTcDialogVisible.value = true
 }
+
+// 详情弹窗内审核
+const approveCurrentTc = () => {
+  if (currentViewTc.value) {
+    currentViewTc.value.status = 'approved'
+    ElMessage.success('测试用例审核通过')
+  }
+}
+
+const rejectCurrentTc = () => {
+  if (currentViewTc.value) {
+    currentViewTc.value.status = 'rejected'
+    ElMessage.success('测试用例已拒绝')
+  }
+}
+
+// 生成详情文本
+const generateDetailText = computed(() => {
+  if (isAiGenerating.value) {
+    const fpCount = savedFpIds.value.length || existingFunctionPoints.value.length
+    return `正在为 ${fpCount} 个功能点生成测试用例...`
+  }
+  return ''
+})
 
 const removeTestCase = (index: number) => {
   generatedTestCases.value.splice(index, 1)
@@ -1521,9 +1777,13 @@ onMounted(async () => {
     if (projectId) {
       formData.projectId = projectId
       currentStep.value = 1
-      await loadProjectStats(projectId)
-      await loadExistingDocuments(projectId)
-      await loadExistingFunctionPoints(projectId)
+      try {
+        projectStats.value = await projectApi.stats(projectId)
+        await loadExistingDocuments()
+        await loadExistingFunctionPoints()
+      } catch (error) {
+        console.error('Failed to load project data:', error)
+      }
     }
   } else {
     restoreState()
@@ -1542,9 +1802,13 @@ watch([currentStep, formData, generatedFunctionPoints, generatedTestCases, saved
 <style lang="scss" scoped>
 .generate-page {
   min-height: calc(100vh - 60px);
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  background: linear-gradient(135deg, #0f1624 0%, #1e293b 100%);
+  background-image: 
+    radial-gradient(circle at 10% 20%, rgba(102, 126, 234, 0.1) 0%, transparent 20%),
+    radial-gradient(circle at 90% 80%, rgba(79, 172, 254, 0.1) 0%, transparent 20%);
   padding: 24px;
   color: #fff;
+  font-family: 'Inter', 'PingFang SC', sans-serif;
   
   .page-header {
     display: flex;
@@ -1553,14 +1817,20 @@ watch([currentStep, formData, generatedFunctionPoints, generatedTestCases, saved
     margin-bottom: 24px;
     padding: 20px 24px;
     background: rgba(255, 255, 255, 0.05);
-    border-radius: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 16px;
+    border: 1px solid rgba(102, 126, 234, 0.2);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
     
     .header-content {
       .page-title {
         font-size: 22px;
         font-weight: 600;
         margin: 0 0 6px 0;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
       }
       
       .page-subtitle {
@@ -1577,8 +1847,11 @@ watch([currentStep, formData, generatedFunctionPoints, generatedTestCases, saved
     justify-content: center;
     margin-bottom: 24px;
     padding: 20px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    border-radius: 16px;
+    border: 1px solid rgba(102, 126, 234, 0.2);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
     
     .step-item {
       display: flex;
@@ -1666,9 +1939,11 @@ watch([currentStep, formData, generatedFunctionPoints, generatedTestCases, saved
   
   .content-card {
     background: rgba(255, 255, 255, 0.05);
-    border-radius: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 16px;
+    border: 1px solid rgba(102, 126, 234, 0.2);
     padding: 24px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
   }
   
   .step-content {
@@ -1676,6 +1951,41 @@ watch([currentStep, formData, generatedFunctionPoints, generatedTestCases, saved
     
     .step-panel {
       padding: 20px;
+      
+      .form-label {
+        font-size: 14px;
+        font-weight: 500;
+        color: rgba(255, 255, 255, 0.9);
+        margin-bottom: 8px;
+        display: block;
+      }
+      
+      :deep(.full-width-textarea) {
+        width: 100%;
+        
+        .el-textarea__inner {
+          width: 100%;
+          background: rgba(255, 255, 255, 0.05);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          color: #fff;
+          
+          &::placeholder {
+            color: rgba(255, 255, 255, 0.3);
+          }
+          
+          &:focus {
+            border-color: rgba(102, 126, 234, 0.5);
+          }
+        }
+      }
+      
+      :deep(.el-form-item) {
+        margin-bottom: 24px;
+        
+        .el-form-item__label {
+          display: none;
+        }
+      }
     }
     
     .upload-area {
@@ -1685,31 +1995,135 @@ watch([currentStep, formData, generatedFunctionPoints, generatedTestCases, saved
         width: 100%;
         background: rgba(255, 255, 255, 0.03);
         border: 1px dashed rgba(255, 255, 255, 0.2);
+        border-radius: 10px;
+        padding: 40px 20px;
         
         &:hover {
           border-color: #667eea;
+          background: rgba(255, 255, 255, 0.06);
         }
         
         .el-icon--upload {
           color: rgba(255, 255, 255, 0.5);
+          font-size: 48px;
         }
         
         .el-upload__text {
           color: rgba(255, 255, 255, 0.7);
+          font-size: 14px;
+          margin-top: 16px;
           
           em {
             color: #667eea;
+            font-style: normal;
           }
         }
       }
       
       :deep(.el-upload__tip) {
         color: rgba(255, 255, 255, 0.4);
+        font-size: 12px;
+        margin-top: 12px;
       }
     }
     
     .existing-docs {
       margin-bottom: 20px;
+      
+      .document-list {
+        .document-item {
+          display: flex;
+          align-items: center;
+          padding: 16px 20px;
+          background: rgba(255, 255, 255, 0.03);
+          border-radius: 10px;
+          margin-bottom: 12px;
+          transition: all 0.3s ease;
+          
+          &:hover {
+            background: rgba(255, 255, 255, 0.06);
+            
+            .doc-actions {
+              opacity: 1;
+            }
+          }
+          
+          .doc-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 16px;
+            
+            .el-icon {
+              font-size: 22px;
+              color: #fff;
+            }
+          }
+          
+          .doc-info {
+            flex: 1;
+            
+            .doc-name {
+              font-size: 15px;
+              font-weight: 500;
+              margin-bottom: 6px;
+            }
+            
+            .doc-meta {
+              display: flex;
+              align-items: center;
+              gap: 12px;
+              font-size: 12px;
+              color: rgba(255, 255, 255, 0.5);
+              
+              .meta-tag {
+                padding: 2px 8px;
+                background: rgba(102, 126, 234, 0.2);
+                color: #667eea;
+                border-radius: 4px;
+              }
+            }
+          }
+          
+          .doc-status {
+            font-size: 12px;
+            padding: 4px 12px;
+            border-radius: 4px;
+            margin-right: 16px;
+            
+            &.pending {
+              background: rgba(255, 255, 255, 0.1);
+              color: rgba(255, 255, 255, 0.6);
+            }
+            
+            &.processing {
+              background: rgba(230, 162, 60, 0.2);
+              color: #e6a23c;
+            }
+            
+            &.parsed {
+              background: rgba(103, 194, 58, 0.2);
+              color: #67c23a;
+            }
+            
+            &.failed {
+              background: rgba(245, 108, 108, 0.2);
+              color: #f56c6c;
+            }
+          }
+          
+          .doc-actions {
+            display: flex;
+            gap: 4px;
+            opacity: 0.6;
+            transition: opacity 0.3s ease;
+          }
+        }
+      }
     }
     
     .existing-fps-section {
@@ -1717,6 +2131,125 @@ watch([currentStep, formData, generatedFunctionPoints, generatedTestCases, saved
       padding: 16px;
       background: rgba(255, 255, 255, 0.03);
       border-radius: 8px;
+    }
+    
+    .function-point-list {
+      .function-point-item {
+        display: flex;
+        align-items: center;
+        padding: 16px 20px;
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 10px;
+        margin-bottom: 12px;
+        transition: all 0.3s ease;
+        
+        &:hover {
+          background: rgba(255, 255, 255, 0.06);
+          
+          .fp-actions {
+            opacity: 1;
+          }
+        }
+        
+        &.editing {
+          background: rgba(102, 126, 234, 0.08);
+          border: 1px solid rgba(102, 126, 234, 0.3);
+        }
+        
+        .fp-icon {
+          width: 44px;
+          height: 44px;
+          border-radius: 10px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin-right: 16px;
+          
+          &.functional {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          }
+          &.performance {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+          }
+          &.security {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+          }
+          &.reliability {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+          }
+          
+          .el-icon {
+            font-size: 22px;
+            color: #fff;
+          }
+        }
+        
+        .fp-info {
+          flex: 1;
+          
+          .fp-name {
+            font-size: 15px;
+            font-weight: 500;
+            margin-bottom: 6px;
+            
+            :deep(.el-input) {
+              width: 200px;
+            }
+          }
+          
+          .fp-meta {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.5);
+            
+            .meta-tag {
+              padding: 2px 8px;
+              background: rgba(102, 126, 234, 0.2);
+              color: #667eea;
+              border-radius: 4px;
+            }
+            
+            .meta-priority {
+              color: rgba(255, 255, 255, 0.6);
+            }
+            
+            .meta-module {
+              color: rgba(255, 255, 255, 0.5);
+            }
+          }
+        }
+        
+        .fp-status {
+          font-size: 12px;
+          padding: 4px 12px;
+          border-radius: 4px;
+          margin-right: 16px;
+          
+          &.pending {
+            background: rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.6);
+          }
+          
+          &.approved {
+            background: rgba(103, 194, 58, 0.2);
+            color: #67c23a;
+          }
+          
+          &.rejected {
+            background: rgba(245, 108, 108, 0.2);
+            color: #f56c6c;
+          }
+        }
+        
+        .fp-actions {
+          display: flex;
+          gap: 4px;
+          opacity: 0.6;
+          transition: opacity 0.3s ease;
+        }
+      }
     }
     
     .project-stats {
@@ -1745,20 +2278,464 @@ watch([currentStep, formData, generatedFunctionPoints, generatedTestCases, saved
       }
     }
     
-    .generating {
+    // ===== 优化后的生成加载动画 =====
+    .generating-container {
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      min-height: 300px;
+      min-height: 400px;
+      padding: 40px;
       
-      p {
-        margin-top: 20px;
-        color: rgba(255, 255, 255, 0.6);
+      .pulse-loader {
+        position: relative;
+        width: 160px;
+        height: 160px;
+        margin-bottom: 40px;
+        
+        .pulse-circle {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          border-radius: 50%;
+          border: 2px solid;
+          animation: pulse-wave 2.4s ease-out infinite;
+          
+          &:nth-child(1) {
+            width: 160px;
+            height: 160px;
+            border-color: rgba(102, 126, 234, 0.3);
+            animation-delay: 0s;
+          }
+          
+          &:nth-child(2) {
+            width: 120px;
+            height: 120px;
+            border-color: rgba(118, 75, 162, 0.4);
+            animation-delay: 0.5s;
+          }
+          
+          &:nth-child(3) {
+            width: 80px;
+            height: 80px;
+            border-color: rgba(102, 126, 234, 0.5);
+            animation-delay: 1s;
+          }
+        }
+        
+        .loader-icon {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          width: 50px;
+          height: 50px;
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          border-radius: 12px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: #fff;
+          font-size: 26px;
+          box-shadow: 0 8px 32px rgba(102, 126, 234, 0.4);
+        }
+      }
+      
+      @keyframes pulse-wave {
+        0% {
+          transform: translate(-50%, -50%) scale(0.8);
+          opacity: 0;
+        }
+        40% {
+          opacity: 1;
+        }
+        100% {
+          transform: translate(-50%, -50%) scale(1.3);
+          opacity: 0;
+        }
+      }
+      
+      .progress-info {
+        text-align: center;
+        width: 380px;
+        
+        .progress-percentage {
+          font-size: 52px;
+          font-weight: 700;
+          background: linear-gradient(135deg, #fff 0%, #a8b2d1 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          line-height: 1;
+          margin-bottom: 14px;
+          font-family: 'Courier New', Consolas, monospace;
+        }
+        
+        .progress-status {
+          font-size: 15px;
+          color: rgba(255, 255, 255, 0.6);
+          margin-bottom: 22px;
+        }
+        
+        .progress-bar-wrapper {
+          width: 100%;
+          height: 6px;
+          background: rgba(255, 255, 255, 0.08);
+          border-radius: 3px;
+          overflow: hidden;
+          
+          .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            border-radius: 3px;
+            transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 0 16px rgba(102, 126, 234, 0.5);
+          }
+        }
+      }
+      
+      .generation-details {
+        margin-top: 24px;
+        padding: 12px 24px;
+        background: rgba(255, 255, 255, 0.04);
+        border-radius: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        
+        .detail-text {
+          font-size: 13px;
+          color: rgba(255, 255, 255, 0.45);
+        }
       }
     }
     
-    .fp-header, .tc-header {
+    // ===== 生成完成后的内容区 =====
+    .generated-content {
+      .info-alert {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 14px 20px;
+        background: rgba(102, 126, 234, 0.08);
+        border-radius: 10px;
+        border: 1px solid rgba(102, 126, 234, 0.15);
+        margin-bottom: 20px;
+        
+        .alert-icon {
+          color: #667eea;
+          font-size: 18px;
+          flex-shrink: 0;
+        }
+        
+        .alert-content {
+          font-size: 14px;
+          color: rgba(255, 255, 255, 0.7);
+          
+          strong {
+            color: #a5b4fc;
+          }
+        }
+      }
+      
+      .action-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        
+        .action-left {
+          display: flex;
+          align-items: baseline;
+          gap: 8px;
+          
+          .list-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.95);
+          }
+          
+          .list-count {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.4);
+            padding: 2px 8px;
+            background: rgba(255, 255, 255, 0.06);
+            border-radius: 10px;
+          }
+        }
+        
+        .action-right {
+          display: flex;
+          gap: 10px;
+          
+          .ai-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            
+            &:hover {
+              opacity: 0.9;
+            }
+          }
+        }
+      }
+    }
+    
+    // ===== 优化后的空状态 =====
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 60px 20px;
+      
+      .empty-icon {
+        width: 80px;
+        height: 80px;
+        border-radius: 20px;
+        background: rgba(102, 126, 234, 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 20px;
+        
+        .el-icon {
+          font-size: 36px;
+          color: #667eea;
+        }
+      }
+      
+      .empty-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: rgba(255, 255, 255, 0.7);
+        margin: 0 0 8px 0;
+      }
+      
+      .empty-desc {
+        font-size: 13px;
+        color: rgba(255, 255, 255, 0.35);
+        margin: 0 0 24px 0;
+      }
+      
+      .empty-btn {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        height: 44px;
+        padding: 0 28px;
+        font-size: 15px;
+        border-radius: 10px;
+        
+        &:hover {
+          opacity: 0.9;
+          transform: translateY(-1px);
+        }
+      }
+    }
+    
+    // ===== 卡片式用例列表 =====
+    .testcase-list {
+      .testcase-item {
+        display: flex;
+        align-items: center;
+        padding: 12px 16px;
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 8px;
+        margin-bottom: 8px;
+        transition: all 0.3s ease;
+        
+        &:hover {
+          background: rgba(255, 255, 255, 0.06);
+          
+          .testcase-actions {
+            opacity: 1;
+          }
+        }
+        
+        .testcase-icon {
+          width: 36px;
+          height: 36px;
+          border-radius: 8px;
+          background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin-right: 12px;
+          
+          &.functional {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          }
+          &.performance {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+          }
+          &.security {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+          }
+          &.reliability {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+          }
+          
+          .el-icon {
+            font-size: 18px;
+            color: #fff;
+          }
+        }
+        
+        .testcase-info {
+          flex: 1;
+          
+          .testcase-title {
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 4px;
+          }
+          
+          .testcase-meta {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.5);
+            
+            .meta-tag {
+              padding: 2px 6px;
+              background: rgba(102, 126, 234, 0.2);
+              color: #667eea;
+              border-radius: 3px;
+            }
+            
+            .meta-priority {
+              color: rgba(255, 255, 255, 0.6);
+            }
+          }
+        }
+        
+        .testcase-status {
+          font-size: 11px;
+          padding: 3px 10px;
+          border-radius: 3px;
+          margin-right: 12px;
+          
+          &.draft {
+            background: rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.6);
+          }
+          
+          &.approved {
+            background: rgba(103, 194, 58, 0.2);
+            color: #67c23a;
+          }
+          
+          &.rejected {
+            background: rgba(245, 108, 108, 0.2);
+            color: #f56c6c;
+          }
+        }
+        
+        .testcase-actions {
+          display: flex;
+          gap: 3px;
+          opacity: 0.6;
+          transition: opacity 0.3s ease;
+        }
+      }
+    }
+    
+    // ===== 底部审核区 =====
+    .final-review-section {
+      margin-top: 28px;
+      padding: 24px;
+      background: linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.06) 100%);
+      border-radius: 14px;
+      border: 1px solid rgba(102, 126, 234, 0.12);
+      
+      .review-summary {
+        text-align: center;
+        margin-bottom: 20px;
+        
+        .summary-title {
+          font-size: 15px;
+          font-weight: 600;
+          color: rgba(255, 255, 255, 0.85);
+          margin-bottom: 14px;
+        }
+        
+        .summary-stats {
+          display: flex;
+          justify-content: center;
+          gap: 28px;
+          font-size: 13px;
+          color: rgba(255, 255, 255, 0.6);
+          
+          .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            
+            .stat-icon {
+              width: 22px;
+              height: 22px;
+              border-radius: 6px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-size: 12px;
+              
+              &.total {
+                background: rgba(102, 126, 234, 0.2);
+                color: #667eea;
+              }
+              &.approved {
+                background: rgba(103, 194, 58, 0.2);
+                color: #67c23a;
+              }
+              &.pending {
+                background: rgba(230, 162, 60, 0.2);
+                color: #e6a23c;
+              }
+            }
+            
+            .stat-number {
+              font-weight: 700;
+              color: #fff;
+            }
+          }
+        }
+      }
+      
+      .review-actions {
+        display: flex;
+        justify-content: center;
+        gap: 14px;
+        
+        .el-button {
+          height: 44px;
+          padding: 0 28px;
+          font-size: 14px;
+          font-weight: 500;
+          border-radius: 10px;
+          transition: all 0.25s;
+        }
+        
+        :deep(.el-button--success) {
+          background: linear-gradient(135deg, #67c23a 0%, #43e97b 100%);
+          border: none;
+          
+          &:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(103, 194, 58, 0.3);
+          }
+        }
+        
+        :deep(.el-button--primary) {
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          border: none;
+          
+          &:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
+          }
+        }
+      }
+    }
+    
+    .fp-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -1770,7 +2747,7 @@ watch([currentStep, formData, generatedFunctionPoints, generatedTestCases, saved
         color: #fff;
       }
       
-      .fp-actions, .tc-actions {
+      .fp-actions {
         display: flex;
         gap: 10px;
         
@@ -1797,37 +2774,106 @@ watch([currentStep, formData, generatedFunctionPoints, generatedTestCases, saved
       margin-bottom: 10px;
     }
     
-    .review-actions {
-      display: flex;
-      justify-content: center;
-      gap: 20px;
-      margin-top: 30px;
-      
-      .el-button--primary {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border: none;
-      }
-    }
-    
-    .final-actions {
-      display: flex;
-      justify-content: center;
-      margin-top: 30px;
-      gap: 16px;
-      
-      .el-button--primary {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border: none;
-      }
-    }
-    
+    // ===== 详情弹窗测试步骤 =====
     .test-steps {
-      margin-top: 20px;
+      margin-top: 24px;
       
       h4 {
-        margin-bottom: 10px;
-        color: #fff;
+        margin-bottom: 12px;
+        color: rgba(255, 255, 255, 0.85);
+        font-size: 14px;
+        font-weight: 600;
       }
+      
+      .steps-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        
+        .step-item {
+          display: flex;
+          gap: 14px;
+          padding: 12px 16px;
+          background: rgba(255, 255, 255, 0.03);
+          border-radius: 8px;
+          border: 1px solid rgba(255, 255, 255, 0.05);
+          
+          .step-number {
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 600;
+            flex-shrink: 0;
+          }
+          
+          .step-content {
+            flex: 1;
+            
+            .step-action {
+              font-size: 13px;
+              color: rgba(255, 255, 255, 0.85);
+              line-height: 1.5;
+            }
+            
+            .step-expected {
+              margin-top: 6px;
+              font-size: 12px;
+              color: rgba(255, 255, 255, 0.45);
+              
+              .expected-label {
+                color: rgba(103, 194, 58, 0.8);
+                font-weight: 500;
+              }
+            }
+          }
+        }
+      }
+    }
+    
+    .no-steps {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 24px;
+      color: rgba(255, 255, 255, 0.3);
+      font-size: 13px;
+      margin-top: 16px;
+    }
+    
+    .dialog-footer-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      
+      :deep(.el-button--success) {
+        background: linear-gradient(135deg, #67c23a 0%, #43e97b 100%);
+        border: none;
+      }
+      
+      :deep(.el-button--danger) {
+        background: rgba(245, 108, 108, 0.15);
+        border: 1px solid rgba(245, 108, 108, 0.3);
+        color: #fca5a5;
+        
+        &:hover:not(:disabled) {
+          background: rgba(245, 108, 108, 0.25);
+        }
+      }
+    }
+    
+    .status-text {
+      font-weight: 500;
+      
+      &.draft { color: #d1d5db; }
+      &.approved { color: #86efac; }
+      &.rejected { color: #fca5a5; }
     }
     
     .batch-actions {
@@ -1912,13 +2958,14 @@ watch([currentStep, formData, generatedFunctionPoints, generatedTestCases, saved
     
     th.el-table__cell {
       background: rgba(255, 255, 255, 0.05);
-      color: rgba(255, 255, 255, 0.8);
+      color: rgba(255, 255, 255, 0.9);
       border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      font-weight: 600;
     }
     
     td.el-table__cell {
       background: transparent;
-      color: rgba(255, 255, 255, 0.8);
+      color: rgba(255, 255, 255, 0.9);
       border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     }
     
@@ -1928,6 +2975,14 @@ watch([currentStep, formData, generatedFunctionPoints, generatedTestCases, saved
     
     .el-table__empty-text {
       color: rgba(255, 255, 255, 0.4);
+    }
+    
+    .cell {
+      color: #fff;
+      
+      span {
+        color: #fff;
+      }
     }
   }
   
@@ -1953,9 +3008,40 @@ watch([currentStep, formData, generatedFunctionPoints, generatedTestCases, saved
     }
   }
   
-  :deep(.el-divider__text) {
-    background: transparent;
-    color: rgba(255, 255, 255, 0.5);
+  :deep(.el-divider) {
+    margin: 24px 0 16px 0;
+    border: none;
+    
+    .el-divider__text {
+      background-color: transparent;
+      color: rgba(255, 255, 255, 0.85);
+      padding: 0;
+      padding-bottom: 12px;
+      font-weight: 600;
+      font-size: 14px;
+      display: block;
+      position: relative;
+      
+      &::after {
+        content: '';
+        position: absolute;
+        left: 0;
+        bottom: 0;
+        width: 100%;
+        height: 1px;
+        background: linear-gradient(90deg, rgba(255, 255, 255, 0.2) 0%, transparent 100%);
+      }
+    }
+    
+    &.is-center .el-divider__text {
+      text-align: center;
+      
+      &::after {
+        left: 50%;
+        transform: translateX(-50%);
+        width: 200px;
+      }
+    }
   }
   
   :deep(.el-dialog) {
@@ -1986,6 +3072,15 @@ watch([currentStep, formData, generatedFunctionPoints, generatedTestCases, saved
     
     .el-descriptions__cell {
       border-color: rgba(255, 255, 255, 0.1);
+    }
+  }
+  
+  @keyframes shine {
+    0% {
+      transform: translateX(-100%) translateY(-100%) rotate(30deg);
+    }
+    100% {
+      transform: translateX(100%) translateY(100%) rotate(30deg);
     }
   }
 }

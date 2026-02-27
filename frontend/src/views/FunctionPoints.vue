@@ -275,9 +275,13 @@ onMounted(async () => {
 <style lang="scss" scoped>
 .function-points-page {
   min-height: calc(100vh - 60px);
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  background: linear-gradient(135deg, #0f1624 0%, #1e293b 100%);
+  background-image: 
+    radial-gradient(circle at 10% 20%, rgba(102, 126, 234, 0.1) 0%, transparent 20%),
+    radial-gradient(circle at 90% 80%, rgba(79, 172, 254, 0.1) 0%, transparent 20%);
   padding: 24px;
   color: #fff;
+  font-family: 'Inter', 'PingFang SC', sans-serif;
   
   .page-header {
     display: flex;
@@ -286,14 +290,20 @@ onMounted(async () => {
     margin-bottom: 24px;
     padding: 20px 24px;
     background: rgba(255, 255, 255, 0.05);
-    border-radius: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 16px;
+    border: 1px solid rgba(102, 126, 234, 0.2);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
     
     .header-content {
       .page-title {
         font-size: 22px;
         font-weight: 600;
         margin: 0 0 6px 0;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
       }
       
       .page-subtitle {
@@ -309,14 +319,29 @@ onMounted(async () => {
       
       .project-select {
         width: 200px;
+        
+        :deep(.el-select__wrapper) {
+          background: rgba(255, 255, 255, 0.05);
+          border-color: rgba(102, 126, 234, 0.3);
+          
+          &:hover {
+            border-color: rgba(102, 126, 234, 0.5);
+          }
+        }
+        
+        :deep(.el-input__inner) {
+          color: #fff;
+        }
       }
       
       .create-btn {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         border: none;
+        box-shadow: 0 0 20px rgba(102, 126, 234, 0.3);
         
         &:hover:not(:disabled) {
           opacity: 0.9;
+          box-shadow: 0 0 30px rgba(102, 126, 234, 0.5);
         }
         
         &:disabled {
@@ -328,22 +353,30 @@ onMounted(async () => {
   
   .content-card {
     background: rgba(255, 255, 255, 0.05);
-    border-radius: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    padding: 20px;
+    backdrop-filter: blur(10px);
+    border-radius: 16px;
+    border: 1px solid rgba(102, 126, 234, 0.2);
+    padding: 24px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
     
     .fp-list {
       .fp-item {
         display: flex;
         align-items: center;
-        padding: 16px 20px;
-        background: rgba(255, 255, 255, 0.03);
-        border-radius: 10px;
-        margin-bottom: 12px;
+        padding: 18px 24px;
+        background: rgba(255, 255, 255, 0.04);
+        backdrop-filter: blur(8px);
+        border-radius: 12px;
+        margin-bottom: 16px;
         transition: all 0.3s ease;
+        position: relative;
+        border: 1px solid rgba(102, 126, 234, 0.1);
         
         &:hover {
-          background: rgba(255, 255, 255, 0.06);
+          background: rgba(255, 255, 255, 0.08);
+          border-color: rgba(102, 126, 234, 0.3);
+          transform: translateY(-2px);
+          box-shadow: 0 0 30px rgba(102, 126, 234, 0.15);
           
           .fp-actions {
             opacity: 1;
@@ -351,96 +384,168 @@ onMounted(async () => {
         }
         
         .fp-icon {
-          width: 44px;
-          height: 44px;
-          border-radius: 10px;
+          width: 48px;
+          height: 48px;
+          border-radius: 12px;
           background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
           display: flex;
           align-items: center;
           justify-content: center;
-          margin-right: 16px;
+          margin-right: 18px;
+          position: relative;
+          z-index: 2;
+          flex-shrink: 0;
+          box-shadow: 0 0 20px rgba(79, 172, 254, 0.3);
           
           .el-icon {
-            font-size: 22px;
+            font-size: 24px;
             color: #fff;
           }
         }
         
         .fp-info {
           flex: 1;
+          min-width: 0;
+          position: relative;
+          z-index: 2;
           
           .fp-name {
-            font-size: 15px;
-            font-weight: 500;
-            margin-bottom: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #fff;
+            position: relative;
+            z-index: 3;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
           }
           
           .fp-meta {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
             font-size: 12px;
+            position: relative;
+            z-index: 2;
+            flex-wrap: wrap;
             
             .meta-tag {
-              padding: 2px 8px;
-              border-radius: 4px;
+              padding: 3px 10px;
+              border-radius: 6px;
+              font-weight: 500;
+              font-size: 11px;
+              position: relative;
+              overflow: hidden;
+              
+              &::after {
+                content: '';
+                position: absolute;
+                top: -50%;
+                left: -50%;
+                width: 200%;
+                height: 200%;
+                background: linear-gradient(
+                  to bottom right,
+                  rgba(255, 255, 255, 0) 0%,
+                  rgba(255, 255, 255, 0.2) 50%,
+                  rgba(255, 255, 255, 0) 100%
+                );
+                transform: rotate(30deg);
+                animation: shine 3s infinite;
+              }
             }
             
             .type-tag {
               background: rgba(102, 126, 234, 0.2);
               color: #667eea;
+              border: 1px solid rgba(102, 126, 234, 0.3);
+              box-shadow: 0 0 10px rgba(102, 126, 234, 0.2);
             }
             
             .priority-tag {
-              &.p0, &.p1 {
-                background: rgba(245, 108, 108, 0.2);
+              &.p0 {
+                background: rgba(245, 108, 108, 0.15);
                 color: #f56c6c;
+                box-shadow: 0 0 15px rgba(245, 108, 108, 0.3);
+                border: 1px solid rgba(245, 108, 108, 0.3);
+              }
+              
+              &.p1 {
+                background: rgba(230, 162, 60, 0.15);
+                color: #e6a23c;
+                box-shadow: 0 0 15px rgba(230, 162, 60, 0.3);
+                border: 1px solid rgba(230, 162, 60, 0.3);
               }
               
               &.p2 {
-                background: rgba(230, 162, 60, 0.2);
-                color: #e6a23c;
+                background: rgba(79, 172, 254, 0.15);
+                color: #4facfe;
+                box-shadow: 0 0 15px rgba(79, 172, 254, 0.3);
+                border: 1px solid rgba(79, 172, 254, 0.3);
               }
               
               &.p3, &.p4 {
-                background: rgba(255, 255, 255, 0.1);
-                color: rgba(255, 255, 255, 0.6);
+                background: rgba(156, 163, 175, 0.15);
+                color: #d1d5db;
+                border: 1px solid rgba(156, 163, 175, 0.3);
               }
             }
             
             .meta-module {
-              color: rgba(255, 255, 255, 0.5);
+              color: rgba(255, 255, 255, 0.7);
+              font-size: 12px;
+              font-weight: 500;
             }
           }
         }
         
         .fp-status {
           font-size: 12px;
-          padding: 4px 12px;
-          border-radius: 4px;
+          padding: 4px 14px;
+          border-radius: 6px;
           margin-right: 16px;
+          font-weight: 500;
+          flex-shrink: 0;
+          position: relative;
+          z-index: 2;
           
           &.pending {
-            background: rgba(230, 162, 60, 0.2);
+            background: rgba(230, 162, 60, 0.15);
             color: #e6a23c;
+            border: 1px solid rgba(230, 162, 60, 0.3);
+            box-shadow: 0 0 10px rgba(230, 162, 60, 0.2);
           }
           
           &.approved {
-            background: rgba(103, 194, 58, 0.2);
+            background: rgba(103, 194, 58, 0.15);
             color: #67c23a;
+            border: 1px solid rgba(103, 194, 58, 0.3);
+            box-shadow: 0 0 10px rgba(103, 194, 58, 0.2);
           }
           
           &.rejected {
-            background: rgba(245, 108, 108, 0.2);
+            background: rgba(245, 108, 108, 0.15);
             color: #f56c6c;
+            border: 1px solid rgba(245, 108, 108, 0.3);
+            box-shadow: 0 0 10px rgba(245, 108, 108, 0.2);
           }
         }
         
         .fp-actions {
           display: flex;
-          gap: 4px;
-          opacity: 0.6;
+          gap: 6px;
+          opacity: 0.7;
           transition: opacity 0.3s ease;
+          flex-shrink: 0;
+          
+          :deep(.el-button) {
+            color: #fff;
+            
+            &:hover {
+              color: #667eea;
+            }
+          }
         }
       }
       
@@ -452,6 +557,10 @@ onMounted(async () => {
         .el-icon {
           font-size: 64px;
           margin-bottom: 16px;
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
         }
         
         p {
@@ -459,6 +568,63 @@ onMounted(async () => {
         }
       }
     }
+  }
+  
+  :deep(.el-dialog) {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(102, 126, 234, 0.3);
+    
+    .el-dialog__header {
+      border-bottom: 1px solid rgba(102, 126, 234, 0.2);
+      
+      .el-dialog__title {
+        color: #fff;
+        font-weight: 600;
+      }
+    }
+    
+    .el-dialog__body {
+      color: #fff;
+      
+      :deep(.el-form-item__label) {
+        color: rgba(255, 255, 255, 0.9);
+      }
+      
+      :deep(.el-input__inner),
+      :deep(.el-textarea__inner),
+      :deep(.el-select__wrapper) {
+        background: rgba(255, 255, 255, 0.05);
+        border-color: rgba(102, 126, 234, 0.3);
+        color: #fff;
+        
+        &:hover {
+          border-color: rgba(102, 126, 234, 0.5);
+        }
+      }
+      
+      :deep(.el-select-dropdown) {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: rgba(102, 126, 234, 0.3);
+        
+        .el-select-dropdown__item {
+          color: #fff;
+          
+          &:hover {
+            background: rgba(102, 126, 234, 0.2);
+          }
+        }
+      }
+    }
+  }
+}
+
+@keyframes shine {
+  0% {
+    transform: translateX(-100%) translateY(-100%) rotate(30deg);
+  }
+  100% {
+    transform: translateX(100%) translateY(100%) rotate(30deg);
   }
 }
 </style>

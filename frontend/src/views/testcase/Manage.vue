@@ -70,75 +70,79 @@
     <div class="content-card">
       <div class="tc-list" v-if="testCases.length > 0">
         <div v-for="tc in testCases" :key="tc.id" class="tc-item" :class="`priority-${tc.priority}`">
-          <div class="tc-priority-indicator"></div>
-          <div class="tc-icon" :class="tc.test_type">
-            <svg v-if="tc.test_type === 'functional'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <rect x="3" y="3" width="18" height="18" rx="2"/>
-              <path d="M9 9h6M9 13h6M9 17h4"/>
-            </svg>
-            <svg v-else-if="tc.test_type === 'performance'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
-            </svg>
-            <svg v-else-if="tc.test_type === 'security'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-            </svg>
-            <svg v-else xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="12" r="10"/>
-              <path d="M12 16v-4M12 8h.01"/>
-            </svg>
-          </div>
-          <div class="tc-info">
-            <div class="tc-name">{{ tc.title }}</div>
-            <div class="tc-meta">
-              <span class="meta-tag type-tag" :class="tc.test_type">{{ getTestTypeLabel(tc.test_type) }}</span>
-              <span class="meta-tag priority-tag" :class="tc.priority">{{ tc.priority?.toUpperCase() }}</span>
-              <span class="meta-category" v-if="tc.test_category">{{ tc.test_category }}</span>
+          <div class="tc-header">
+            <div class="tc-icon" :class="tc.test_type">
+              <svg v-if="tc.test_type === 'functional'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="3" width="18" height="18" rx="2"/>
+                <path d="M9 9h6M9 13h6M9 17h4"/>
+              </svg>
+              <svg v-else-if="tc.test_type === 'performance'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+              </svg>
+              <svg v-else-if="tc.test_type === 'security'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              </svg>
+              <svg v-else xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M12 16v-4M12 8h.01"/>
+              </svg>
+            </div>
+            <div class="tc-title-area">
+              <div class="tc-name">{{ tc.title }}</div>
+              <div class="tc-meta">
+                <span class="meta-tag type-tag" :class="tc.test_type">{{ getTestTypeLabel(tc.test_type) }}</span>
+                <span class="meta-tag priority-tag" :class="tc.priority">{{ tc.priority?.toUpperCase() }}</span>
+              </div>
+            </div>
+            <div class="tc-status-badge" :class="tc.status">
+              <span class="status-dot"></span>
+              {{ getStatusLabel(tc.status) }}
             </div>
           </div>
-          <div class="tc-status" :class="tc.status">
-            <span class="status-dot"></span>
-            {{ getStatusLabel(tc.status) }}
-          </div>
-          <div class="tc-actions">
-            <el-tooltip content="查看详情" placement="top">
-              <button class="action-btn view" @click="viewTestCase(tc)">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                  <circle cx="12" cy="12" r="3"/>
-                </svg>
-              </button>
-            </el-tooltip>
-            <el-tooltip content="编辑" placement="top">
-              <button class="action-btn edit" @click="showEditDialog(tc)">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
-                  <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                </svg>
-              </button>
-            </el-tooltip>
-            <el-tooltip content="通过审核" placement="top">
-              <button class="action-btn approve" @click="approveTestCase(tc)" :disabled="tc.status === 'approved'">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <polyline points="20 6 9 17 4 12"/>
-                </svg>
-              </button>
-            </el-tooltip>
-            <el-tooltip content="拒绝" placement="top">
-              <button class="action-btn reject" @click="rejectTestCase(tc)" :disabled="tc.status === 'approved' || tc.status === 'rejected'">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <line x1="18" y1="6" x2="6" y2="18"/>
-                  <line x1="6" y1="6" x2="18" y2="18"/>
-                </svg>
-              </button>
-            </el-tooltip>
-            <el-tooltip content="删除" placement="top">
-              <button class="action-btn delete" @click="deleteTestCase(tc)">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <polyline points="3 6 5 6 21 6"/>
-                  <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
-                </svg>
-              </button>
-            </el-tooltip>
+          <div class="tc-footer">
+            <div class="tc-desc" v-if="tc.description">{{ tc.description }}</div>
+            <div class="tc-desc" v-else style="opacity: 0.5;">暂无描述</div>
+            <div class="tc-actions">
+              <el-tooltip content="查看详情" placement="top">
+                <button class="action-btn view" @click="viewTestCase(tc)">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                    <circle cx="12" cy="12" r="3"/>
+                  </svg>
+                </button>
+              </el-tooltip>
+              <el-tooltip content="编辑" placement="top">
+                <button class="action-btn edit" @click="showEditDialog(tc)">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+                    <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                  </svg>
+                </button>
+              </el-tooltip>
+              <el-tooltip content="通过审核" placement="top">
+                <button class="action-btn approve" @click="approveTestCase(tc)" :disabled="tc.status === 'approved'">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="20 6 9 17 4 12"/>
+                  </svg>
+                </button>
+              </el-tooltip>
+              <el-tooltip content="拒绝" placement="top">
+                <button class="action-btn reject" @click="rejectTestCase(tc)" :disabled="tc.status === 'approved' || tc.status === 'rejected'">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"/>
+                    <line x1="6" y1="6" x2="18" y2="18"/>
+                  </svg>
+                </button>
+              </el-tooltip>
+              <el-tooltip content="删除" placement="top">
+                <button class="action-btn delete" @click="deleteTestCase(tc)">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="3 6 5 6 21 6"/>
+                    <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
+                  </svg>
+                </button>
+              </el-tooltip>
+            </div>
           </div>
         </div>
       </div>
@@ -699,15 +703,17 @@ onMounted(async () => {
     padding: 20px;
     
     .tc-list {
+      display: grid;
+      gap: 16px;
+      
       .tc-item {
         display: flex;
-        align-items: center;
-        padding: 16px 20px;
-        background: rgba(255, 255, 255, 0.02);
-        border-radius: 12px;
-        margin-bottom: 12px;
-        border: 1px solid rgba(255, 255, 255, 0.06);
-        transition: all 0.3s ease;
+        flex-direction: column;
+        padding: 0;
+        background: linear-gradient(145deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.01) 100%);
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         position: relative;
         overflow: hidden;
         
@@ -717,49 +723,75 @@ onMounted(async () => {
           left: 0;
           top: 0;
           bottom: 0;
-          width: 3px;
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          width: 4px;
+          background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
           opacity: 0;
           transition: opacity 0.3s ease;
         }
         
+        &::after {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, transparent 50%);
+          opacity: 0;
+          transition: opacity 0.3s ease;
+          pointer-events: none;
+        }
+        
         &:hover {
-          background: rgba(255, 255, 255, 0.04);
-          border-color: rgba(102, 126, 234, 0.3);
+          background: linear-gradient(145deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0.02) 100%);
+          border-color: rgba(102, 126, 234, 0.4);
+          transform: translateY(-2px);
+          box-shadow: 0 8px 32px rgba(102, 126, 234, 0.15);
           
           &::before {
+            opacity: 1;
+          }
+          
+          &::after {
             opacity: 1;
           }
           
           .tc-actions {
             opacity: 1;
           }
-        }
-        
-        &.priority-p0, &.priority-p1 {
-          .tc-priority-indicator {
-            position: absolute;
-            right: 0;
-            top: 0;
-            width: 4px;
-            height: 100%;
-            background: linear-gradient(135deg, #f56c6c 0%, #e6a23c 100%);
+          
+          .tc-icon {
+            transform: scale(1.05);
           }
         }
         
+        &.priority-p0, &.priority-p1 {
+          &::before {
+            background: linear-gradient(180deg, #f56c6c 0%, #e6a23c 100%);
+            opacity: 1;
+          }
+        }
+        
+        .tc-header {
+          display: flex;
+          align-items: center;
+          padding: 20px 24px;
+          gap: 18px;
+          position: relative;
+          z-index: 1;
+        }
+        
         .tc-icon {
-          width: 44px;
-          height: 44px;
-          border-radius: 10px;
+          width: 52px;
+          height: 52px;
+          border-radius: 14px;
           display: flex;
           align-items: center;
           justify-content: center;
-          margin-right: 16px;
           flex-shrink: 0;
+          transition: transform 0.3s ease;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
           
           svg {
-            width: 22px;
-            height: 22px;
+            width: 26px;
+            height: 26px;
             color: #fff;
           }
           
@@ -780,104 +812,121 @@ onMounted(async () => {
           }
         }
         
-        .tc-info {
+        .tc-title-area {
           flex: 1;
           min-width: 0;
           
           .tc-name {
-            font-size: 15px;
-            font-weight: 500;
-            margin-bottom: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 10px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            color: rgba(255, 255, 255, 0.95);
+            letter-spacing: 0.3px;
           }
           
           .tc-meta {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
             font-size: 12px;
+            flex-wrap: wrap;
             
             .meta-tag {
-              padding: 2px 8px;
-              border-radius: 4px;
-              font-weight: 500;
+              padding: 3px 10px;
+              border-radius: 6px;
+              font-weight: 600;
+              font-size: 11px;
+              letter-spacing: 0.5px;
             }
             
             .type-tag {
               &.functional {
-                background: rgba(102, 126, 234, 0.2);
-                color: #667eea;
+                background: rgba(102, 126, 234, 0.15);
+                color: #a5b4fc;
+                border: 1px solid rgba(102, 126, 234, 0.3);
               }
               
               &.performance {
-                background: rgba(245, 87, 108, 0.2);
-                color: #f5576c;
+                background: rgba(245, 87, 108, 0.15);
+                color: #fda4af;
+                border: 1px solid rgba(245, 87, 108, 0.3);
               }
               
               &.security {
-                background: rgba(79, 172, 254, 0.2);
-                color: #4facfe;
+                background: rgba(79, 172, 254, 0.15);
+                color: #7dd3fc;
+                border: 1px solid rgba(79, 172, 254, 0.3);
               }
               
               &.reliability {
-                background: rgba(67, 233, 123, 0.2);
-                color: #43e97b;
+                background: rgba(67, 233, 123, 0.15);
+                color: #86efac;
+                border: 1px solid rgba(67, 233, 123, 0.3);
               }
             }
             
             .priority-tag {
               &.p0, &.p1 {
-                background: rgba(245, 108, 108, 0.2);
-                color: #f56c6c;
+                background: rgba(245, 108, 108, 0.15);
+                color: #fca5a5;
+                border: 1px solid rgba(245, 108, 108, 0.3);
               }
               
               &.p2 {
-                background: rgba(230, 162, 60, 0.2);
-                color: #e6a23c;
+                background: rgba(230, 162, 60, 0.15);
+                color: #fcd34d;
+                border: 1px solid rgba(230, 162, 60, 0.3);
               }
               
               &.p3, &.p4 {
-                background: rgba(255, 255, 255, 0.1);
-                color: rgba(255, 255, 255, 0.6);
+                background: rgba(156, 163, 175, 0.15);
+                color: #d1d5db;
+                border: 1px solid rgba(156, 163, 175, 0.3);
               }
-            }
-            
-            .meta-category {
-              color: rgba(255, 255, 255, 0.4);
             }
           }
         }
         
-        .tc-status {
+        .tc-status-badge {
           display: flex;
           align-items: center;
-          gap: 6px;
+          gap: 8px;
           font-size: 12px;
-          padding: 4px 12px;
-          border-radius: 20px;
-          margin-right: 16px;
-          font-weight: 500;
+          padding: 6px 14px;
+          border-radius: 24px;
+          font-weight: 600;
+          flex-shrink: 0;
+          letter-spacing: 0.3px;
           
           .status-dot {
-            width: 6px;
-            height: 6px;
+            width: 8px;
+            height: 8px;
             border-radius: 50%;
+            animation: pulse 2s infinite;
+          }
+          
+          @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
           }
           
           &.draft {
-            background: rgba(255, 255, 255, 0.1);
-            color: rgba(255, 255, 255, 0.6);
+            background: rgba(156, 163, 175, 0.15);
+            color: #d1d5db;
+            border: 1px solid rgba(156, 163, 175, 0.2);
             
             .status-dot {
-              background: rgba(255, 255, 255, 0.4);
+              background: #9ca3af;
             }
           }
           
           &.reviewed {
-            background: rgba(230, 162, 60, 0.2);
-            color: #e6a23c;
+            background: rgba(230, 162, 60, 0.15);
+            color: #fcd34d;
+            border: 1px solid rgba(230, 162, 60, 0.2);
             
             .status-dot {
               background: #e6a23c;
@@ -885,8 +934,9 @@ onMounted(async () => {
           }
           
           &.approved {
-            background: rgba(103, 194, 58, 0.2);
-            color: #67c23a;
+            background: rgba(103, 194, 58, 0.15);
+            color: #86efac;
+            border: 1px solid rgba(103, 194, 58, 0.2);
             
             .status-dot {
               background: #67c23a;
@@ -894,8 +944,9 @@ onMounted(async () => {
           }
           
           &.rejected {
-            background: rgba(245, 108, 108, 0.2);
-            color: #f56c6c;
+            background: rgba(245, 108, 108, 0.15);
+            color: #fca5a5;
+            border: 1px solid rgba(245, 108, 108, 0.2);
             
             .status-dot {
               background: #f56c6c;
@@ -903,16 +954,40 @@ onMounted(async () => {
           }
         }
         
+        .tc-footer {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 14px 24px;
+          background: rgba(0, 0, 0, 0.2);
+          gap: 16px;
+          border-top: 1px solid rgba(255, 255, 255, 0.04);
+          position: relative;
+          z-index: 1;
+        }
+        
+        .tc-desc {
+          flex: 1;
+          font-size: 13px;
+          color: rgba(255, 255, 255, 0.45);
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          min-width: 0;
+          line-height: 1.5;
+        }
+        
         .tc-actions {
           display: flex;
-          gap: 4px;
-          opacity: 0.5;
+          gap: 6px;
+          opacity: 0.4;
           transition: opacity 0.3s ease;
+          flex-shrink: 0;
           
           .action-btn {
-            width: 32px;
-            height: 32px;
-            border-radius: 8px;
+            width: 34px;
+            height: 34px;
+            border-radius: 10px;
             border: none;
             background: rgba(255, 255, 255, 0.05);
             color: rgba(255, 255, 255, 0.6);
@@ -928,37 +1003,38 @@ onMounted(async () => {
             }
             
             &:hover:not(:disabled) {
-              background: rgba(255, 255, 255, 0.1);
+              background: rgba(255, 255, 255, 0.12);
               color: #fff;
+              transform: translateY(-1px);
             }
             
             &.view:hover {
-              background: rgba(102, 126, 234, 0.2);
-              color: #667eea;
+              background: rgba(102, 126, 234, 0.25);
+              color: #a5b4fc;
             }
             
             &.edit:hover {
-              background: rgba(240, 147, 251, 0.2);
-              color: #f093fb;
+              background: rgba(240, 147, 251, 0.25);
+              color: #f0abfc;
             }
             
             &.approve:hover:not(:disabled) {
-              background: rgba(103, 194, 58, 0.2);
-              color: #67c23a;
+              background: rgba(103, 194, 58, 0.25);
+              color: #86efac;
             }
             
             &.reject:hover:not(:disabled) {
-              background: rgba(245, 108, 108, 0.2);
-              color: #f56c6c;
+              background: rgba(245, 108, 108, 0.25);
+              color: #fca5a5;
             }
             
             &.delete:hover {
-              background: rgba(245, 108, 108, 0.2);
-              color: #f56c6c;
+              background: rgba(245, 108, 108, 0.25);
+              color: #fca5a5;
             }
             
             &:disabled {
-              opacity: 0.3;
+              opacity: 0.25;
               cursor: not-allowed;
             }
           }
