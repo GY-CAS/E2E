@@ -529,9 +529,9 @@ onMounted(async () => {
 <style lang="scss" scoped>
 .test-cases-page {
   min-height: calc(100vh - 60px);
-  background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 50%, #16213e 100%);
+  background: var(--background-color);
   padding: 24px;
-  color: #fff;
+  color: var(--text-primary);
   
   .page-header {
     display: flex;
@@ -541,7 +541,7 @@ onMounted(async () => {
     padding: 20px 24px;
     background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
     border-radius: 16px;
-    border: 1px solid rgba(102, 126, 234, 0.2);
+    border: 1px solid var(--border-color);
     backdrop-filter: blur(10px);
     
     .header-content {
@@ -555,7 +555,7 @@ onMounted(async () => {
         width: 48px;
         height: 48px;
         border-radius: 12px;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -571,7 +571,7 @@ onMounted(async () => {
         font-size: 24px;
         font-weight: 700;
         margin: 0 0 4px 0;
-        background: linear-gradient(135deg, #fff 0%, rgba(255,255,255,0.8) 100%);
+        background: linear-gradient(135deg, var(--text-primary) 0%, rgba(255,255,255,0.8) 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
@@ -579,7 +579,7 @@ onMounted(async () => {
       
       .page-subtitle {
         font-size: 14px;
-        color: rgba(255, 255, 255, 0.5);
+        color: var(--text-tertiary);
         margin: 0;
       }
     }
@@ -596,7 +596,7 @@ onMounted(async () => {
         
         label {
           font-size: 11px;
-          color: rgba(255, 255, 255, 0.5);
+          color: var(--text-tertiary);
           text-transform: uppercase;
           letter-spacing: 0.5px;
         }
@@ -607,7 +607,7 @@ onMounted(async () => {
       }
       
       .create-btn {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);
         border: none;
         height: 40px;
         padding: 0 20px;
@@ -643,9 +643,9 @@ onMounted(async () => {
       align-items: center;
       gap: 12px;
       padding: 16px 20px;
-      background: rgba(255, 255, 255, 0.03);
+      background: var(--border-light);
       border-radius: 12px;
-      border: 1px solid rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--border-color);
       flex: 1;
       
       .stat-icon {
@@ -663,17 +663,17 @@ onMounted(async () => {
         
         &.total {
           background: rgba(102, 126, 234, 0.2);
-          color: #667eea;
+          color: var(--primary-color);
         }
         
         &.approved {
           background: rgba(103, 194, 58, 0.2);
-          color: #67c23a;
+          color: var(--success-color);
         }
         
         &.pending {
           background: rgba(230, 162, 60, 0.2);
-          color: #e6a23c;
+          color: var(--warning-color);
         }
       }
       
@@ -685,11 +685,12 @@ onMounted(async () => {
           font-size: 24px;
           font-weight: 700;
           line-height: 1;
+          color: var(--text-primary);
         }
         
         .stat-label {
           font-size: 12px;
-          color: rgba(255, 255, 255, 0.5);
+          color: var(--text-tertiary);
           margin-top: 4px;
         }
       }
@@ -697,9 +698,9 @@ onMounted(async () => {
   }
   
   .content-card {
-    background: rgba(255, 255, 255, 0.02);
+    background: var(--surface-color);
     border-radius: 16px;
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border: 1px solid var(--border-color);
     padding: 20px;
     
     .tc-list {
@@ -710,9 +711,9 @@ onMounted(async () => {
         display: flex;
         flex-direction: column;
         padding: 0;
-        background: linear-gradient(145deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.01) 100%);
+        background: var(--border-light);
         border-radius: 16px;
-        border: 1px solid rgba(255, 255, 255, 0.08);
+        border: 1px solid var(--border-color);
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         position: relative;
         overflow: hidden;
@@ -724,7 +725,7 @@ onMounted(async () => {
           top: 0;
           bottom: 0;
           width: 4px;
-          background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+          background: linear-gradient(180deg, var(--primary-color) 0%, var(--primary-hover) 100%);
           opacity: 0;
           transition: opacity 0.3s ease;
         }
@@ -740,8 +741,8 @@ onMounted(async () => {
         }
         
         &:hover {
-          background: linear-gradient(145deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0.02) 100%);
-          border-color: rgba(102, 126, 234, 0.4);
+          background: var(--border-color);
+          border-color: var(--primary-color);
           transform: translateY(-2px);
           box-shadow: 0 8px 32px rgba(102, 126, 234, 0.15);
           
@@ -764,7 +765,7 @@ onMounted(async () => {
         
         &.priority-p0, &.priority-p1 {
           &::before {
-            background: linear-gradient(180deg, #f56c6c 0%, #e6a23c 100%);
+            background: linear-gradient(180deg, var(--danger-color) 0%, var(--warning-color) 100%);
             opacity: 1;
           }
         }
@@ -796,7 +797,7 @@ onMounted(async () => {
           }
           
           &.functional {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);
           }
           
           &.performance {
@@ -823,7 +824,7 @@ onMounted(async () => {
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            color: rgba(255, 255, 255, 0.95);
+            color: var(--text-primary);
             letter-spacing: 0.3px;
           }
           
@@ -883,7 +884,7 @@ onMounted(async () => {
               
               &.p3, &.p4 {
                 background: rgba(156, 163, 175, 0.15);
-                color: #d1d5db;
+                color: var(--text-tertiary);
                 border: 1px solid rgba(156, 163, 175, 0.3);
               }
             }
@@ -915,7 +916,7 @@ onMounted(async () => {
           
           &.draft {
             background: rgba(156, 163, 175, 0.15);
-            color: #d1d5db;
+            color: var(--text-tertiary);
             border: 1px solid rgba(156, 163, 175, 0.2);
             
             .status-dot {
@@ -925,31 +926,31 @@ onMounted(async () => {
           
           &.reviewed {
             background: rgba(230, 162, 60, 0.15);
-            color: #fcd34d;
+            color: var(--warning-color);
             border: 1px solid rgba(230, 162, 60, 0.2);
             
             .status-dot {
-              background: #e6a23c;
+              background: var(--warning-color);
             }
           }
           
           &.approved {
             background: rgba(103, 194, 58, 0.15);
-            color: #86efac;
+            color: var(--success-color);
             border: 1px solid rgba(103, 194, 58, 0.2);
             
             .status-dot {
-              background: #67c23a;
+              background: var(--success-color);
             }
           }
           
           &.rejected {
             background: rgba(245, 108, 108, 0.15);
-            color: #fca5a5;
+            color: var(--danger-color);
             border: 1px solid rgba(245, 108, 108, 0.2);
             
             .status-dot {
-              background: #f56c6c;
+              background: var(--danger-color);
             }
           }
         }
@@ -959,9 +960,9 @@ onMounted(async () => {
           align-items: center;
           justify-content: space-between;
           padding: 14px 24px;
-          background: rgba(0, 0, 0, 0.2);
+          background: var(--border-light);
           gap: 16px;
-          border-top: 1px solid rgba(255, 255, 255, 0.04);
+          border-top: 1px solid var(--border-color);
           position: relative;
           z-index: 1;
         }
@@ -969,7 +970,7 @@ onMounted(async () => {
         .tc-desc {
           flex: 1;
           font-size: 13px;
-          color: rgba(255, 255, 255, 0.45);
+          color: var(--text-tertiary);
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
@@ -989,8 +990,8 @@ onMounted(async () => {
             height: 34px;
             border-radius: 10px;
             border: none;
-            background: rgba(255, 255, 255, 0.05);
-            color: rgba(255, 255, 255, 0.6);
+            background: var(--surface-color);
+            color: var(--text-secondary);
             cursor: pointer;
             display: flex;
             align-items: center;
@@ -1003,8 +1004,8 @@ onMounted(async () => {
             }
             
             &:hover:not(:disabled) {
-              background: rgba(255, 255, 255, 0.12);
-              color: #fff;
+              background: var(--border-color);
+              color: var(--text-primary);
               transform: translateY(-1px);
             }
             
@@ -1020,17 +1021,17 @@ onMounted(async () => {
             
             &.approve:hover:not(:disabled) {
               background: rgba(103, 194, 58, 0.25);
-              color: #86efac;
+              color: var(--success-color);
             }
             
             &.reject:hover:not(:disabled) {
               background: rgba(245, 108, 108, 0.25);
-              color: #fca5a5;
+              color: var(--danger-color);
             }
             
             &.delete:hover {
               background: rgba(245, 108, 108, 0.25);
-              color: #fca5a5;
+              color: var(--danger-color);
             }
             
             &:disabled {
@@ -1059,7 +1060,7 @@ onMounted(async () => {
         svg {
           width: 40px;
           height: 40px;
-          color: rgba(102, 126, 234, 0.5);
+          color: var(--primary-color);
         }
       }
       
@@ -1067,17 +1068,17 @@ onMounted(async () => {
         font-size: 18px;
         font-weight: 600;
         margin: 0 0 8px 0;
-        color: rgba(255, 255, 255, 0.8);
+        color: var(--text-primary);
       }
       
       p {
         font-size: 14px;
-        color: rgba(255, 255, 255, 0.4);
+        color: var(--text-tertiary);
         margin: 0 0 24px 0;
       }
       
       .empty-btn {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);
         border: none;
         height: 44px;
         padding: 0 24px;

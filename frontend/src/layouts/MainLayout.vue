@@ -52,6 +52,10 @@
           </el-breadcrumb>
         </div>
         <div class="header-right">
+          <el-button type="text" class="theme-toggle" @click="toggleTheme">
+            <el-icon v-if="isDarkMode"><Sunny /></el-icon>
+            <el-icon v-else><Moon /></el-icon>
+          </el-button>
           <el-button type="primary" class="generate-btn" @click="$router.push('/test-cases/generate')">
             <el-icon><Plus /></el-icon>
             生成测试用例
@@ -66,7 +70,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import {
   DataAnalysis,
@@ -77,13 +81,53 @@ import {
   DocumentCopy,
   Share,
   Plus,
-  MagicStick
+  MagicStick,
+  Sunny,
+  Moon
 } from '@element-plus/icons-vue'
 
 const route = useRoute()
+const isDarkMode = ref(true)
 
 const activeMenu = computed(() => route.path)
 const currentTitle = computed(() => route.meta.title as string || '')
+
+const toggleTheme = () => {
+  isDarkMode.value = !isDarkMode.value
+  document.documentElement.classList.toggle('light-theme', !isDarkMode.value)
+  document.documentElement.classList.toggle('dark-theme', isDarkMode.value)
+  localStorage.setItem('theme', isDarkMode.value ? 'dark' : 'light')
+}
+
+const updateThemeFromStorage = (theme: string) => {
+  if (theme === 'light') {
+    isDarkMode.value = false
+    document.documentElement.classList.add('light-theme')
+    document.documentElement.classList.remove('dark-theme')
+  } else {
+    isDarkMode.value = true
+    document.documentElement.classList.add('dark-theme')
+    document.documentElement.classList.remove('light-theme')
+  }
+}
+
+onMounted(() => {
+  const savedTheme = localStorage.getItem('theme')
+  if (savedTheme === 'light') {
+    isDarkMode.value = false
+    document.documentElement.classList.add('light-theme')
+  } else {
+    isDarkMode.value = true
+    document.documentElement.classList.add('dark-theme')
+  }
+
+  // 监听storage事件，实现跨标签页通信
+  window.addEventListener('storage', (event) => {
+    if (event.key === 'theme' && event.newValue) {
+      updateThemeFromStorage(event.newValue)
+    }
+  })
+})
 </script>
 
 <style lang="scss" scoped>
@@ -92,7 +136,7 @@ const currentTitle = computed(() => route.meta.title as string || '')
 }
 
 .aside {
-  background: linear-gradient(180deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  background: linear-gradient(180deg, var(--background-color) 0%, var(--surface-color) 50%, var(--border-light) 100%);
   
   .logo {
     height: 60px;
@@ -100,21 +144,21 @@ const currentTitle = computed(() => route.meta.title as string || '')
     align-items: center;
     justify-content: center;
     gap: 10px;
-    background: rgba(255, 255, 255, 0.05);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    background: var(--surface-color);
+    border-bottom: 1px solid var(--border-color);
     
     .logo-icon {
       font-size: 24px;
-      color: #667eea;
+      color: var(--primary-color);
     }
     
     h1 {
-      color: #fff;
+      color: var(--text-primary);
       font-size: 16px;
       font-weight: 600;
       margin: 0;
       white-space: nowrap;
-      background: linear-gradient(90deg, #667eea, #764ba2);
+      background: linear-gradient(90deg, var(--primary-color), var(--primary-hover));
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
@@ -127,30 +171,36 @@ const currentTitle = computed(() => route.meta.title as string || '')
       margin: 4px 8px;
       border-radius: 8px;
       transition: all 0.3s ease;
+      color: var(--text-secondary);
       
       &:hover {
-        background: rgba(255, 255, 255, 0.05);
+        background: var(--border-light);
+        color: var(--text-primary);
       }
       
       &.is-active {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);
         
         .el-icon {
+          color: #fff;
+        }
+        
+        span {
           color: #fff;
         }
       }
       
       .el-icon {
-        color: rgba(255, 255, 255, 0.7);
+        color: var(--text-secondary);
       }
     }
   }
 }
 
 .header {
-  background: rgba(26, 26, 46, 0.95);
+  background: var(--surface-color);
   backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid var(--border-color);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -163,35 +213,45 @@ const currentTitle = computed(() => route.meta.title as string || '')
     :deep(.el-breadcrumb) {
       .el-breadcrumb__inner,
       .el-breadcrumb__separator {
-        color: rgba(255, 255, 255, 0.6);
+        color: var(--text-tertiary);
       }
       
       .el-breadcrumb__inner a,
       .el-breadcrumb__inner.is-link {
-        color: rgba(255, 255, 255, 0.8);
+        color: var(--text-secondary);
         
         &:hover {
-          color: #667eea;
+          color: var(--primary-color);
         }
       }
     }
   }
   
   .header-right {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    
-    .generate-btn {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      border: none;
+      display: flex;
+      align-items: center;
+      gap: 16px;
       
-      &:hover {
-        opacity: 0.9;
-        transform: translateY(-1px);
+      .theme-toggle {
+        color: var(--text-secondary);
+        font-size: 18px;
+        
+        &:hover {
+          color: var(--text-primary);
+          background: var(--border-light);
+        }
+      }
+      
+      .generate-btn {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);
+        border: none;
+        
+        &:hover {
+          opacity: 0.9;
+          transform: translateY(-1px);
+        }
       }
     }
-  }
 }
 
 .main {

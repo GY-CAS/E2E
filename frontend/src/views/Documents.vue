@@ -176,9 +176,9 @@ onMounted(async () => {
 <style lang="scss" scoped>
 .documents-page {
   min-height: calc(100vh - 60px);
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  background: var(--background-color);
   padding: 24px;
-  color: #fff;
+  color: var(--text-primary);
   
   .page-header {
     display: flex;
@@ -186,20 +186,21 @@ onMounted(async () => {
     align-items: center;
     margin-bottom: 24px;
     padding: 20px 24px;
-    background: rgba(255, 255, 255, 0.05);
+    background: var(--surface-color);
     border-radius: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--border-color);
     
     .header-content {
       .page-title {
         font-size: 22px;
         font-weight: 600;
         margin: 0 0 6px 0;
+        color: var(--text-primary);
       }
       
       .page-subtitle {
         font-size: 13px;
-        color: rgba(255, 255, 255, 0.5);
+        color: var(--text-tertiary);
         margin: 0;
       }
     }
@@ -213,7 +214,7 @@ onMounted(async () => {
       }
       
       .upload-btn {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);
         border: none;
         
         &:hover:not(:disabled) {
@@ -228,9 +229,9 @@ onMounted(async () => {
   }
   
   .content-card {
-    background: rgba(255, 255, 255, 0.05);
+    background: var(--surface-color);
     border-radius: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--border-color);
     padding: 20px;
     
     .documents-list {
@@ -238,13 +239,13 @@ onMounted(async () => {
         display: flex;
         align-items: center;
         padding: 16px 20px;
-        background: rgba(255, 255, 255, 0.03);
+        background: var(--border-light);
         border-radius: 10px;
         margin-bottom: 12px;
         transition: all 0.3s ease;
         
         &:hover {
-          background: rgba(255, 255, 255, 0.06);
+          background: var(--border-color);
           
           .doc-actions {
             opacity: 1;
@@ -274,6 +275,7 @@ onMounted(async () => {
             font-size: 15px;
             font-weight: 500;
             margin-bottom: 6px;
+            color: var(--text-primary);
           }
           
           .doc-meta {
@@ -281,12 +283,12 @@ onMounted(async () => {
             align-items: center;
             gap: 12px;
             font-size: 12px;
-            color: rgba(255, 255, 255, 0.5);
+            color: var(--text-tertiary);
             
             .meta-tag {
               padding: 2px 8px;
               background: rgba(102, 126, 234, 0.2);
-              color: #667eea;
+              color: var(--primary-color);
               border-radius: 4px;
             }
           }
@@ -299,23 +301,23 @@ onMounted(async () => {
           margin-right: 16px;
           
           &.pending {
-            background: rgba(255, 255, 255, 0.1);
-            color: rgba(255, 255, 255, 0.6);
+            background: var(--border-light);
+            color: var(--text-secondary);
           }
           
           &.processing {
             background: rgba(230, 162, 60, 0.2);
-            color: #e6a23c;
+            color: var(--warning-color);
           }
           
           &.parsed {
             background: rgba(103, 194, 58, 0.2);
-            color: #67c23a;
+            color: var(--success-color);
           }
           
           &.failed {
             background: rgba(245, 108, 108, 0.2);
-            color: #f56c6c;
+            color: var(--danger-color);
           }
         }
         
@@ -330,7 +332,7 @@ onMounted(async () => {
       .empty-state {
         text-align: center;
         padding: 60px 20px;
-        color: rgba(255, 255, 255, 0.4);
+        color: var(--text-tertiary);
         
         .el-icon {
           font-size: 64px;

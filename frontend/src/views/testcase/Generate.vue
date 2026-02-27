@@ -212,12 +212,9 @@
                 </div>
                 <div class="fp-info">
                   <div class="fp-name">
-                    <el-input v-if="fp.editing" v-model="fp.name" size="small" />
-                    <span v-else>
-                      {{ fp.name }}
-                      <el-tag v-if="fp.isExisting" type="info" size="small" style="margin-left: 8px;">已有</el-tag>
-                      <el-tag v-else-if="fp.isNew" type="success" size="small" style="margin-left: 8px;">新增</el-tag>
-                    </span>
+                    {{ fp.name }}
+                    <el-tag v-if="fp.isExisting" type="info" size="small" style="margin-left: 8px;">已有</el-tag>
+                    <el-tag v-else-if="fp.isNew" type="success" size="small" style="margin-left: 8px;">新增</el-tag>
                   </div>
                   <div class="fp-meta">
                     <span class="meta-tag">{{ getTestTypeLabel(fp.test_type) }}</span>
@@ -229,42 +226,30 @@
                   {{ fp.status === 'approved' ? '已审核' : (fp.status === 'rejected' ? '已拒绝' : '待审核') }}
                 </div>
                 <div class="fp-actions">
-                  <template v-if="fp.editing">
-                    <el-button type="success" text size="small" @click="saveFpEdit(fp)">
-                      <el-icon><Check /></el-icon>
-                      保存
-                    </el-button>
-                    <el-button text size="small" @click="cancelFpEdit(fp)">
-                      <el-icon><Close /></el-icon>
-                      取消
-                    </el-button>
-                  </template>
-                  <template v-else>
-                    <el-button type="primary" text size="small" @click="viewFunctionPoint(fp)">
-                      <el-icon><View /></el-icon>
-                      查看
-                    </el-button>
-                    <el-button type="primary" text size="small" @click="editFp(fp)">
-                      <el-icon><Edit /></el-icon>
-                      编辑
-                    </el-button>
-                    <el-button v-if="!fp.isExisting" type="warning" text size="small" @click="refineFp(fp)">
-                      <el-icon><MagicStick /></el-icon>
-                      AI优化
-                    </el-button>
-                    <el-button type="success" text size="small" @click="approveFp(fp)" :disabled="fp.status === 'approved'">
-                      <el-icon><Check /></el-icon>
-                      通过
-                    </el-button>
-                    <el-button type="warning" text size="small" @click="rejectFp(fp)" :disabled="fp.status === 'rejected'">
-                      <el-icon><Close /></el-icon>
-                      拒绝
-                    </el-button>
-                    <el-button type="danger" text size="small" @click="deleteFunctionPoint(fp)">
-                      <el-icon><Delete /></el-icon>
-                      删除
-                    </el-button>
-                  </template>
+                  <el-button type="primary" text size="small" @click="viewFunctionPoint(fp)">
+                    <el-icon><View /></el-icon>
+                    查看
+                  </el-button>
+                  <el-button type="primary" text size="small" @click="showEditFpDialog(fp)">
+                    <el-icon><Edit /></el-icon>
+                    编辑
+                  </el-button>
+                  <el-button v-if="!fp.isExisting" type="warning" text size="small" @click="refineFp(fp)">
+                    <el-icon><MagicStick /></el-icon>
+                    AI优化
+                  </el-button>
+                  <el-button type="success" text size="small" @click="approveFp(fp)" :disabled="fp.status === 'approved'">
+                    <el-icon><Check /></el-icon>
+                    通过
+                  </el-button>
+                  <el-button type="warning" text size="small" @click="rejectFp(fp)" :disabled="fp.status === 'rejected'">
+                    <el-icon><Close /></el-icon>
+                    拒绝
+                  </el-button>
+                  <el-button type="danger" text size="small" @click="deleteFunctionPoint(fp)">
+                    <el-icon><Delete /></el-icon>
+                    删除
+                  </el-button>
                 </div>
               </div>
             </div>
@@ -524,37 +509,67 @@
       </div>
     </div>
     
-    <el-dialog v-model="viewFpDialogVisible" title="查看功能点" width="600px">
-      <el-descriptions :column="2" border>
-        <el-descriptions-item label="功能点名称">
-          {{ currentViewFp?.name }}
-        </el-descriptions-item>
-        <el-descriptions-item label="测试类型">
-          <el-tag :type="getTestTypeColor(currentViewFp?.test_type)">
-            {{ getTestTypeLabel(currentViewFp?.test_type) }}
-          </el-tag>
-        </el-descriptions-item>
-        <el-descriptions-item label="优先级">
-          <el-tag :type="getPriorityColor(currentViewFp?.priority)">
-            {{ currentViewFp?.priority?.toUpperCase() }}
-          </el-tag>
-        </el-descriptions-item>
-        <el-descriptions-item label="状态">
-          <el-tag :type="currentViewFp?.status === 'approved' ? 'success' : (currentViewFp?.status === 'rejected' ? 'danger' : 'warning')">
-            {{ currentViewFp?.status === 'approved' ? '已审核' : (currentViewFp?.status === 'rejected' ? '已拒绝' : '待审核') }}
-          </el-tag>
-        </el-descriptions-item>
-        <el-descriptions-item label="模块" :span="2">
-          {{ currentViewFp?.module || '-' }}
-        </el-descriptions-item>
-        <el-descriptions-item label="描述" :span="2">
-          {{ currentViewFp?.description || '-' }}
-        </el-descriptions-item>
-        <el-descriptions-item label="来源" :span="2">
-          <el-tag v-if="currentViewFp?.isExisting" type="info">已有</el-tag>
-          <el-tag v-else type="success">新增</el-tag>
-        </el-descriptions-item>
-      </el-descriptions>
+    <el-dialog v-model="viewFpDialogVisible" title="功能点详情" width="600px" class="view-fp-dialog">
+      <div class="fp-detail-container">
+        <div class="fp-detail-header">
+          <div class="fp-name-section">
+            <div class="fp-icon-small" :class="currentViewFp?.test_type">
+              <el-icon v-if="currentViewFp?.test_type === 'functional'"><DocumentIcon /></el-icon>
+              <el-icon v-else-if="currentViewFp?.test_type === 'performance'"><Timer /></el-icon>
+              <el-icon v-else-if="currentViewFp?.test_type === 'security'"><Lock /></el-icon>
+              <el-icon v-else><SetUp /></el-icon>
+            </div>
+            <div class="fp-name-wrapper">
+              <h3 class="fp-detail-name">{{ currentViewFp?.name }}</h3>
+              <div class="fp-meta-info">
+                <el-tag v-if="currentViewFp?.isExisting" type="info" size="small">已有</el-tag>
+                <el-tag v-else type="success" size="small">新增</el-tag>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="fp-detail-content">
+          <div class="info-grid">
+            <div class="info-item">
+              <span class="info-label">测试类型</span>
+              <el-tag :type="getTestTypeColor(currentViewFp?.test_type)" size="small">
+                {{ getTestTypeLabel(currentViewFp?.test_type) }}
+              </el-tag>
+            </div>
+            <div class="info-item">
+              <span class="info-label">优先级</span>
+              <el-tag :type="getPriorityColor(currentViewFp?.priority)" size="small">
+                {{ currentViewFp?.priority?.toUpperCase() }}
+              </el-tag>
+            </div>
+            <div class="info-item">
+              <span class="info-label">状态</span>
+              <el-tag :type="currentViewFp?.status === 'approved' ? 'success' : (currentViewFp?.status === 'rejected' ? 'danger' : 'warning')" size="small">
+                {{ currentViewFp?.status === 'approved' ? '已审核' : (currentViewFp?.status === 'rejected' ? '已拒绝' : '待审核') }}
+              </el-tag>
+            </div>
+            <div class="info-item">
+              <span class="info-label">模块</span>
+              <span class="info-value">{{ currentViewFp?.module || '-' }}</span>
+            </div>
+          </div>
+
+          <div class="detail-section">
+            <div class="section-title">描述</div>
+            <div class="detail-content">
+              {{ currentViewFp?.description || '-' }}
+            </div>
+          </div>
+
+          <div v-if="currentViewFp?.acceptance_criteria" class="detail-section">
+            <div class="section-title">验收标准</div>
+            <div class="detail-content">
+              {{ currentViewFp?.acceptance_criteria }}
+            </div>
+          </div>
+        </div>
+      </div>
       <template #footer>
         <el-button @click="viewFpDialogVisible = false">关闭</el-button>
       </template>
@@ -615,6 +630,44 @@
       <template #footer>
         <el-button @click="addFpDialogVisible = false">取消</el-button>
         <el-button type="primary" @click="addNewFp">添加</el-button>
+      </template>
+    </el-dialog>
+    
+    <el-dialog v-model="editFpDialogVisible" :title="isEditFp ? '编辑功能点' : '新增功能点'" width="600px">
+      <el-form :model="editFpFormData" label-width="100px" :rules="editFpRules" ref="editFpFormRef">
+        <el-form-item label="功能点名称" prop="name">
+          <el-input v-model="editFpFormData.name" placeholder="请输入功能点名称" />
+        </el-form-item>
+        <el-form-item label="描述" prop="description">
+          <el-input v-model="editFpFormData.description" type="textarea" :rows="3" placeholder="请输入功能点描述" />
+        </el-form-item>
+        <el-form-item label="测试类型" prop="test_type">
+          <el-select v-model="editFpFormData.test_type" placeholder="请选择测试类型" style="width: 100%;">
+            <el-option label="功能测试" value="functional" />
+            <el-option label="性能测试" value="performance" />
+            <el-option label="安全测试" value="security" />
+            <el-option label="可靠性测试" value="reliability" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="优先级" prop="priority">
+          <el-select v-model="editFpFormData.priority" placeholder="请选择优先级" style="width: 100%;">
+            <el-option label="P0 - 最高" value="p0" />
+            <el-option label="P1 - 高" value="p1" />
+            <el-option label="P2 - 中" value="p2" />
+            <el-option label="P3 - 低" value="p3" />
+            <el-option label="P4 - 最低" value="p4" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="模块" prop="module">
+          <el-input v-model="editFpFormData.module" placeholder="请输入所属模块" />
+        </el-form-item>
+        <el-form-item label="验收标准" prop="acceptance_criteria">
+          <el-input v-model="editFpFormData.acceptance_criteria" type="textarea" :rows="3" placeholder="请输入验收标准" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="resetEditFpForm">取消</el-button>
+        <el-button type="primary" @click="submitEditFpForm">确定</el-button>
       </template>
     </el-dialog>
     
@@ -709,7 +762,7 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from 'element-plus'
 import { UploadFilled, Loading, Plus, MagicStick, Back, Right, Check, Close, Document as DocumentIcon, Timer, Lock, SetUp, View, Delete, Clock, FolderChecked, DocumentAdd, InfoFilled, List, Refresh, Edit } from '@element-plus/icons-vue'
 import { projectApi, documentApi, functionPointApi, generatorApi, testCaseApi, type Project, type Document, type ProjectStats, type FunctionPoint } from '@/api'
 import { useGenerateStore } from '@/stores/generate'
@@ -772,6 +825,26 @@ const currentViewTc = ref<any>(null)
 
 const viewFpDialogVisible = ref(false)
 const currentViewFp = ref<any>(null)
+
+const editFpDialogVisible = ref(false)
+const isEditFp = ref(false)
+const editingFpId = ref<string>('')
+const editFpFormRef = ref<FormInstance>()
+
+const editFpFormData = reactive({
+  name: '',
+  description: '',
+  test_type: 'functional',
+  priority: 'p2',
+  module: '',
+  acceptance_criteria: ''
+})
+
+const editFpRules: FormRules = {
+  name: [{ required: true, message: '请输入功能点名称', trigger: 'blur' }],
+  test_type: [{ required: true, message: '请选择测试类型', trigger: 'change' }],
+  priority: [{ required: true, message: '请选择优先级', trigger: 'change' }]
+}
 
 const allFunctionPoints = computed(() => {
   const existing = existingFunctionPoints.value.map(fp => ({
@@ -1358,19 +1431,54 @@ const approveAllTcs = () => {
 }
 
 const editFp = (fp: any) => {
-  if (fp.isExisting) {
-    const index = existingFunctionPoints.value.findIndex(efp => efp.id === fp.id)
-    if (index !== -1) {
-      existingFunctionPoints.value[index].editing = true
-      existingFunctionPoints.value[index].originalData = { ...existingFunctionPoints.value[index] }
+  isEditFp.value = true
+  editingFpId.value = fp.id
+  editFpFormData.name = fp.name
+  editFpFormData.description = fp.description || ''
+  editFpFormData.test_type = fp.test_type || 'functional'
+  editFpFormData.priority = fp.priority || 'p2'
+  editFpFormData.module = fp.module || ''
+  editFpFormData.acceptance_criteria = fp.acceptance_criteria || ''
+  editFpDialogVisible.value = true
+}
+
+const showEditFpDialog = (fp: any) => {
+  editFp(fp)
+}
+
+const submitEditFpForm = async () => {
+  if (!editFpFormRef.value) return
+  
+  await editFpFormRef.value.validate(async (valid) => {
+    if (!valid) return
+    
+    try {
+      const data = {
+        ...editFpFormData,
+        project_id: formData.projectId,
+        status: 'pending'
+      }
+      
+      await functionPointApi.update(editingFpId.value, data)
+      ElMessage.success('更新成功，状态已重置为待审核')
+      editFpDialogVisible.value = false
+      await loadExistingFunctionPoints()
+    } catch (error: any) {
+      console.error('Failed to update function point:', error)
+      ElMessage.error(error?.response?.data?.detail || '更新失败')
     }
-  } else {
-    const index = generatedFunctionPoints.value.findIndex(gfp => gfp === fp)
-    if (index !== -1) {
-      generatedFunctionPoints.value[index].editing = true
-      generatedFunctionPoints.value[index].originalData = { ...generatedFunctionPoints.value[index] }
-    }
-  }
+  })
+}
+
+const resetEditFpForm = () => {
+  editFpFormData.name = ''
+  editFpFormData.description = ''
+  editFpFormData.test_type = 'functional'
+  editFpFormData.priority = 'p2'
+  editFpFormData.module = ''
+  editFpFormData.acceptance_criteria = ''
+  editingFpId.value = ''
+  isEditFp.value = false
 }
 
 const approveExistingFp = async (row: any) => {
@@ -1484,40 +1592,6 @@ const rejectAllFps = async () => {
   const stats = await projectApi.stats(formData.projectId)
   projectStats.value = stats
   ElMessage.success('已全部拒绝')
-}
-
-const saveFpEdit = (fp: any) => {
-  if (fp.isExisting) {
-    const index = existingFunctionPoints.value.findIndex(efp => efp.id === fp.id)
-    if (index !== -1) {
-      existingFunctionPoints.value[index].editing = false
-      delete existingFunctionPoints.value[index].originalData
-    }
-  } else {
-    const index = generatedFunctionPoints.value.findIndex(gfp => gfp === fp)
-    if (index !== -1) {
-      generatedFunctionPoints.value[index].editing = false
-      delete generatedFunctionPoints.value[index].originalData
-    }
-  }
-}
-
-const cancelFpEdit = (fp: any) => {
-  if (fp.isExisting) {
-    const index = existingFunctionPoints.value.findIndex(efp => efp.id === fp.id)
-    if (index !== -1) {
-      Object.assign(existingFunctionPoints.value[index], existingFunctionPoints.value[index].originalData)
-      existingFunctionPoints.value[index].editing = false
-      delete existingFunctionPoints.value[index].originalData
-    }
-  } else {
-    const index = generatedFunctionPoints.value.findIndex(gfp => gfp === fp)
-    if (index !== -1) {
-      Object.assign(generatedFunctionPoints.value[index], generatedFunctionPoints.value[index].originalData)
-      generatedFunctionPoints.value[index].editing = false
-      delete generatedFunctionPoints.value[index].originalData
-    }
-  }
 }
 
 const removeFunctionPoint = (fp: any) => {
@@ -1802,13 +1876,11 @@ watch([currentStep, formData, generatedFunctionPoints, generatedTestCases, saved
 <style lang="scss" scoped>
 .generate-page {
   min-height: calc(100vh - 60px);
-  background: linear-gradient(135deg, #0f1624 0%, #1e293b 100%);
-  background-image: 
-    radial-gradient(circle at 10% 20%, rgba(102, 126, 234, 0.1) 0%, transparent 20%),
-    radial-gradient(circle at 90% 80%, rgba(79, 172, 254, 0.1) 0%, transparent 20%);
+  background: var(--bg-gradient);
   padding: 24px;
-  color: #fff;
+  color: var(--text-primary);
   font-family: 'Inter', 'PingFang SC', sans-serif;
+  transition: all 0.25s ease;
   
   .page-header {
     display: flex;
@@ -1816,18 +1888,19 @@ watch([currentStep, formData, generatedFunctionPoints, generatedTestCases, saved
     align-items: center;
     margin-bottom: 24px;
     padding: 20px 24px;
-    background: rgba(255, 255, 255, 0.05);
+    background: var(--card-bg);
     backdrop-filter: blur(10px);
     border-radius: 16px;
-    border: 1px solid rgba(102, 126, 234, 0.2);
+    border: 1px solid var(--border-color);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    transition: all 0.25s ease;
     
     .header-content {
       .page-title {
         font-size: 22px;
         font-weight: 600;
         margin: 0 0 6px 0;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: var(--primary-gradient);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
@@ -1835,8 +1908,9 @@ watch([currentStep, formData, generatedFunctionPoints, generatedTestCases, saved
       
       .page-subtitle {
         font-size: 13px;
-        color: rgba(255, 255, 255, 0.5);
+        color: var(--text-secondary);
         margin: 0;
+        transition: color 0.25s ease;
       }
     }
   }
@@ -1847,11 +1921,12 @@ watch([currentStep, formData, generatedFunctionPoints, generatedTestCases, saved
     justify-content: center;
     margin-bottom: 24px;
     padding: 20px;
-    background: rgba(255, 255, 255, 0.05);
+    background: var(--card-bg);
     backdrop-filter: blur(10px);
     border-radius: 16px;
-    border: 1px solid rgba(102, 126, 234, 0.2);
+    border: 1px solid var(--border-color);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    transition: all 0.25s ease;
     
     .step-item {
       display: flex;
@@ -1869,7 +1944,7 @@ watch([currentStep, formData, generatedFunctionPoints, generatedTestCases, saved
           }
           
           .step-title {
-            color: #fff;
+            color: var(--text-primary);
           }
         }
       }
@@ -1878,22 +1953,22 @@ watch([currentStep, formData, generatedFunctionPoints, generatedTestCases, saved
         width: 40px;
         height: 40px;
         border-radius: 50%;
-        background: rgba(255, 255, 255, 0.2);
-        color: rgba(255, 255, 255, 0.7);
+        background: var(--card-bg-hover);
+        color: var(--text-secondary);
         display: flex;
         align-items: center;
         justify-content: center;
         font-weight: 600;
         font-size: 16px;
         transition: all 0.3s ease;
-        border: 2px solid rgba(255, 255, 255, 0.3);
+        border: 2px solid var(--border-color);
       }
       
       .step-title {
         margin-left: 12px;
         font-size: 14px;
         font-weight: 500;
-        color: rgba(255, 255, 255, 0.8);
+        color: var(--text-secondary);
         white-space: nowrap;
         transition: all 0.3s ease;
       }
@@ -1901,49 +1976,50 @@ watch([currentStep, formData, generatedFunctionPoints, generatedTestCases, saved
       .step-line {
         width: 60px;
         height: 2px;
-        background: rgba(255, 255, 255, 0.3);
+        background: var(--border-color);
         margin: 0 15px;
       }
       
       &.is-active {
         .step-icon {
-          background: #fff;
-          color: #667eea;
-          border-color: #fff;
-          box-shadow: 0 4px 15px rgba(255, 255, 255, 0.4);
+          background: var(--primary-color);
+          color: #fff;
+          border-color: var(--primary-color);
+          box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
         }
         
         .step-title {
-          color: #fff;
+          color: var(--text-primary);
           font-weight: 600;
         }
       }
       
       &.is-finished {
         .step-icon {
-          background: rgba(255, 255, 255, 0.9);
-          color: #67c23a;
-          border-color: #67c23a;
+          background: var(--success-color);
+          color: #fff;
+          border-color: var(--success-color);
         }
         
         .step-title {
-          color: #fff;
+          color: var(--text-primary);
         }
         
         .step-line {
-          background: rgba(255, 255, 255, 0.6);
+          background: var(--border-color-hover);
         }
       }
     }
   }
   
   .content-card {
-    background: rgba(255, 255, 255, 0.05);
+    background: var(--card-bg);
     backdrop-filter: blur(10px);
     border-radius: 16px;
-    border: 1px solid rgba(102, 126, 234, 0.2);
+    border: 1px solid var(--border-color);
     padding: 24px;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    transition: all 0.25s ease;
   }
   
   .step-content {
@@ -1955,9 +2031,10 @@ watch([currentStep, formData, generatedFunctionPoints, generatedTestCases, saved
       .form-label {
         font-size: 14px;
         font-weight: 500;
-        color: rgba(255, 255, 255, 0.9);
+        color: var(--text-primary);
         margin-bottom: 8px;
         display: block;
+        transition: color 0.25s ease;
       }
       
       :deep(.full-width-textarea) {
@@ -1965,16 +2042,16 @@ watch([currentStep, formData, generatedFunctionPoints, generatedTestCases, saved
         
         .el-textarea__inner {
           width: 100%;
-          background: rgba(255, 255, 255, 0.05);
-          border: 1px solid rgba(255, 255, 255, 0.1);
-          color: #fff;
+          background: var(--card-bg-hover);
+          border: 1px solid var(--border-color);
+          color: var(--text-primary);
           
           &::placeholder {
-            color: rgba(255, 255, 255, 0.3);
+            color: var(--text-tertiary);
           }
           
           &:focus {
-            border-color: rgba(102, 126, 234, 0.5);
+            border-color: var(--primary-color);
           }
         }
       }
@@ -1993,35 +2070,35 @@ watch([currentStep, formData, generatedFunctionPoints, generatedTestCases, saved
       
       :deep(.el-upload-dragger) {
         width: 100%;
-        background: rgba(255, 255, 255, 0.03);
-        border: 1px dashed rgba(255, 255, 255, 0.2);
+        background: var(--card-bg-hover);
+        border: 1px dashed var(--border-color);
         border-radius: 10px;
         padding: 40px 20px;
         
         &:hover {
-          border-color: #667eea;
-          background: rgba(255, 255, 255, 0.06);
+          border-color: var(--primary-color);
+          background: var(--card-bg-active);
         }
         
         .el-icon--upload {
-          color: rgba(255, 255, 255, 0.5);
+          color: var(--text-tertiary);
           font-size: 48px;
         }
         
         .el-upload__text {
-          color: rgba(255, 255, 255, 0.7);
+          color: var(--text-secondary);
           font-size: 14px;
           margin-top: 16px;
           
           em {
-            color: #667eea;
+            color: var(--primary-color);
             font-style: normal;
           }
         }
       }
       
       :deep(.el-upload__tip) {
-        color: rgba(255, 255, 255, 0.4);
+        color: var(--text-tertiary);
         font-size: 12px;
         margin-top: 12px;
       }
@@ -2035,13 +2112,13 @@ watch([currentStep, formData, generatedFunctionPoints, generatedTestCases, saved
           display: flex;
           align-items: center;
           padding: 16px 20px;
-          background: rgba(255, 255, 255, 0.03);
+          background: var(--card-bg-hover);
           border-radius: 10px;
           margin-bottom: 12px;
           transition: all 0.3s ease;
           
           &:hover {
-            background: rgba(255, 255, 255, 0.06);
+            background: var(--card-bg-active);
             
             .doc-actions {
               opacity: 1;
@@ -2052,7 +2129,7 @@ watch([currentStep, formData, generatedFunctionPoints, generatedTestCases, saved
             width: 44px;
             height: 44px;
             border-radius: 10px;
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            background: var(--primary-gradient);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -2071,6 +2148,8 @@ watch([currentStep, formData, generatedFunctionPoints, generatedTestCases, saved
               font-size: 15px;
               font-weight: 500;
               margin-bottom: 6px;
+              color: var(--text-primary);
+              transition: color 0.25s ease;
             }
             
             .doc-meta {
@@ -2078,12 +2157,12 @@ watch([currentStep, formData, generatedFunctionPoints, generatedTestCases, saved
               align-items: center;
               gap: 12px;
               font-size: 12px;
-              color: rgba(255, 255, 255, 0.5);
+              color: var(--text-secondary);
               
               .meta-tag {
                 padding: 2px 8px;
-                background: rgba(102, 126, 234, 0.2);
-                color: #667eea;
+                background: var(--primary-color-light);
+                color: var(--primary-color);
                 border-radius: 4px;
               }
             }
@@ -2096,23 +2175,23 @@ watch([currentStep, formData, generatedFunctionPoints, generatedTestCases, saved
             margin-right: 16px;
             
             &.pending {
-              background: rgba(255, 255, 255, 0.1);
-              color: rgba(255, 255, 255, 0.6);
+              background: var(--text-secondary-light);
+              color: var(--text-secondary);
             }
             
             &.processing {
-              background: rgba(230, 162, 60, 0.2);
-              color: #e6a23c;
+              background: var(--warning-color-light);
+              color: var(--warning-color);
             }
             
             &.parsed {
-              background: rgba(103, 194, 58, 0.2);
-              color: #67c23a;
+              background: var(--success-color-light);
+              color: var(--success-color);
             }
             
             &.failed {
               background: rgba(245, 108, 108, 0.2);
-              color: #f56c6c;
+              color: var(--danger-color);
             }
           }
           
@@ -2129,7 +2208,7 @@ watch([currentStep, formData, generatedFunctionPoints, generatedTestCases, saved
     .existing-fps-section {
       margin-bottom: 20px;
       padding: 16px;
-      background: rgba(255, 255, 255, 0.03);
+      background: var(--card-bg-hover);
       border-radius: 8px;
     }
     
@@ -2138,13 +2217,13 @@ watch([currentStep, formData, generatedFunctionPoints, generatedTestCases, saved
         display: flex;
         align-items: center;
         padding: 16px 20px;
-        background: rgba(255, 255, 255, 0.03);
+        background: var(--card-bg-hover);
         border-radius: 10px;
         margin-bottom: 12px;
         transition: all 0.3s ease;
         
         &:hover {
-          background: rgba(255, 255, 255, 0.06);
+          background: var(--card-bg-active);
           
           .fp-actions {
             opacity: 1;
@@ -2152,8 +2231,8 @@ watch([currentStep, formData, generatedFunctionPoints, generatedTestCases, saved
         }
         
         &.editing {
-          background: rgba(102, 126, 234, 0.08);
-          border: 1px solid rgba(102, 126, 234, 0.3);
+          background: var(--primary-color-light);
+          border: 1px solid var(--primary-color);
         }
         
         .fp-icon {
@@ -2166,7 +2245,7 @@ watch([currentStep, formData, generatedFunctionPoints, generatedTestCases, saved
           margin-right: 16px;
           
           &.functional {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: var(--primary-gradient);
           }
           &.performance {
             background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
@@ -2191,6 +2270,8 @@ watch([currentStep, formData, generatedFunctionPoints, generatedTestCases, saved
             font-size: 15px;
             font-weight: 500;
             margin-bottom: 6px;
+            color: var(--text-primary);
+            transition: color 0.25s ease;
             
             :deep(.el-input) {
               width: 200px;
@@ -2202,21 +2283,21 @@ watch([currentStep, formData, generatedFunctionPoints, generatedTestCases, saved
             align-items: center;
             gap: 12px;
             font-size: 12px;
-            color: rgba(255, 255, 255, 0.5);
+            color: var(--text-secondary);
             
             .meta-tag {
               padding: 2px 8px;
-              background: rgba(102, 126, 234, 0.2);
-              color: #667eea;
+              background: var(--primary-color-light);
+              color: var(--primary-color);
               border-radius: 4px;
             }
             
             .meta-priority {
-              color: rgba(255, 255, 255, 0.6);
+              color: var(--text-secondary);
             }
             
             .meta-module {
-              color: rgba(255, 255, 255, 0.5);
+              color: var(--text-tertiary);
             }
           }
         }
@@ -2228,18 +2309,18 @@ watch([currentStep, formData, generatedFunctionPoints, generatedTestCases, saved
           margin-right: 16px;
           
           &.pending {
-            background: rgba(255, 255, 255, 0.1);
-            color: rgba(255, 255, 255, 0.6);
+            background: var(--text-secondary-light);
+            color: var(--text-secondary);
           }
           
           &.approved {
-            background: rgba(103, 194, 58, 0.2);
-            color: #67c23a;
+            background: var(--success-color-light);
+            color: var(--success-color);
           }
           
           &.rejected {
             background: rgba(245, 108, 108, 0.2);
-            color: #f56c6c;
+            color: var(--danger-color);
           }
         }
         
@@ -2255,21 +2336,21 @@ watch([currentStep, formData, generatedFunctionPoints, generatedTestCases, saved
     .project-stats {
       margin-top: 20px;
       padding: 20px;
-      background: rgba(255, 255, 255, 0.03);
+      background: var(--card-bg-hover);
       border-radius: 8px;
       
       :deep(.el-divider__text) {
         background: transparent;
-        color: rgba(255, 255, 255, 0.6);
+        color: var(--text-secondary);
       }
       
       :deep(.el-statistic) {
         .el-statistic__head {
-          color: rgba(255, 255, 255, 0.6);
+          color: var(--text-secondary);
         }
         
         .el-statistic__content {
-          color: #fff;
+          color: var(--text-primary);
         }
       }
       
@@ -2331,7 +2412,7 @@ watch([currentStep, formData, generatedFunctionPoints, generatedTestCases, saved
           transform: translate(-50%, -50%);
           width: 50px;
           height: 50px;
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          background: var(--primary-gradient);
           border-radius: 12px;
           display: flex;
           align-items: center;
@@ -2363,7 +2444,7 @@ watch([currentStep, formData, generatedFunctionPoints, generatedTestCases, saved
         .progress-percentage {
           font-size: 52px;
           font-weight: 700;
-          background: linear-gradient(135deg, #fff 0%, #a8b2d1 100%);
+          background: var(--primary-gradient);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           line-height: 1;
@@ -2373,20 +2454,20 @@ watch([currentStep, formData, generatedFunctionPoints, generatedTestCases, saved
         
         .progress-status {
           font-size: 15px;
-          color: rgba(255, 255, 255, 0.6);
+          color: var(--text-secondary);
           margin-bottom: 22px;
         }
         
         .progress-bar-wrapper {
           width: 100%;
           height: 6px;
-          background: rgba(255, 255, 255, 0.08);
+          background: var(--card-bg-hover);
           border-radius: 3px;
           overflow: hidden;
           
           .progress-bar-fill {
             height: 100%;
-            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            background: var(--primary-gradient);
             border-radius: 3px;
             transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
             box-shadow: 0 0 16px rgba(102, 126, 234, 0.5);
@@ -2397,13 +2478,13 @@ watch([currentStep, formData, generatedFunctionPoints, generatedTestCases, saved
       .generation-details {
         margin-top: 24px;
         padding: 12px 24px;
-        background: rgba(255, 255, 255, 0.04);
+        background: var(--card-bg-hover);
         border-radius: 10px;
-        border: 1px solid rgba(255, 255, 255, 0.06);
+        border: 1px solid var(--border-color);
         
         .detail-text {
           font-size: 13px;
-          color: rgba(255, 255, 255, 0.45);
+          color: var(--text-tertiary);
         }
       }
     }
@@ -2415,23 +2496,23 @@ watch([currentStep, formData, generatedFunctionPoints, generatedTestCases, saved
         align-items: center;
         gap: 12px;
         padding: 14px 20px;
-        background: rgba(102, 126, 234, 0.08);
+        background: var(--primary-color-light);
         border-radius: 10px;
-        border: 1px solid rgba(102, 126, 234, 0.15);
+        border: 1px solid var(--primary-color-light);
         margin-bottom: 20px;
         
         .alert-icon {
-          color: #667eea;
+          color: var(--primary-color);
           font-size: 18px;
           flex-shrink: 0;
         }
         
         .alert-content {
           font-size: 14px;
-          color: rgba(255, 255, 255, 0.7);
+          color: var(--text-secondary);
           
           strong {
-            color: #a5b4fc;
+            color: var(--primary-color);
           }
         }
       }
@@ -2450,14 +2531,14 @@ watch([currentStep, formData, generatedFunctionPoints, generatedTestCases, saved
           .list-title {
             font-size: 16px;
             font-weight: 600;
-            color: rgba(255, 255, 255, 0.95);
+            color: var(--text-primary);
           }
           
           .list-count {
             font-size: 13px;
-            color: rgba(255, 255, 255, 0.4);
+            color: var(--text-tertiary);
             padding: 2px 8px;
-            background: rgba(255, 255, 255, 0.06);
+            background: var(--card-bg-hover);
             border-radius: 10px;
           }
         }
@@ -2467,7 +2548,7 @@ watch([currentStep, formData, generatedFunctionPoints, generatedTestCases, saved
           gap: 10px;
           
           .ai-btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: var(--primary-gradient);
             border: none;
             
             &:hover {
@@ -2489,7 +2570,7 @@ watch([currentStep, formData, generatedFunctionPoints, generatedTestCases, saved
         width: 80px;
         height: 80px;
         border-radius: 20px;
-        background: rgba(102, 126, 234, 0.1);
+        background: var(--primary-color-light);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -2497,25 +2578,25 @@ watch([currentStep, formData, generatedFunctionPoints, generatedTestCases, saved
         
         .el-icon {
           font-size: 36px;
-          color: #667eea;
+          color: var(--primary-color);
         }
       }
       
       .empty-title {
         font-size: 16px;
         font-weight: 600;
-        color: rgba(255, 255, 255, 0.7);
+        color: var(--text-secondary);
         margin: 0 0 8px 0;
       }
       
       .empty-desc {
         font-size: 13px;
-        color: rgba(255, 255, 255, 0.35);
+        color: var(--text-tertiary);
         margin: 0 0 24px 0;
       }
       
       .empty-btn {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: var(--primary-gradient);
         border: none;
         height: 44px;
         padding: 0 28px;
@@ -2535,13 +2616,13 @@ watch([currentStep, formData, generatedFunctionPoints, generatedTestCases, saved
         display: flex;
         align-items: center;
         padding: 12px 16px;
-        background: rgba(255, 255, 255, 0.03);
+        background: var(--card-bg-hover);
         border-radius: 8px;
         margin-bottom: 8px;
         transition: all 0.3s ease;
         
         &:hover {
-          background: rgba(255, 255, 255, 0.06);
+          background: var(--card-bg-active);
           
           .testcase-actions {
             opacity: 1;
@@ -2559,7 +2640,7 @@ watch([currentStep, formData, generatedFunctionPoints, generatedTestCases, saved
           margin-right: 12px;
           
           &.functional {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: var(--primary-gradient);
           }
           &.performance {
             background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
@@ -2584,6 +2665,7 @@ watch([currentStep, formData, generatedFunctionPoints, generatedTestCases, saved
             font-size: 14px;
             font-weight: 500;
             margin-bottom: 4px;
+            color: var(--text-primary);
           }
           
           .testcase-meta {
@@ -2591,17 +2673,17 @@ watch([currentStep, formData, generatedFunctionPoints, generatedTestCases, saved
             align-items: center;
             gap: 10px;
             font-size: 11px;
-            color: rgba(255, 255, 255, 0.5);
+            color: var(--text-secondary);
             
             .meta-tag {
               padding: 2px 6px;
-              background: rgba(102, 126, 234, 0.2);
-              color: #667eea;
+              background: var(--primary-color-light);
+              color: var(--primary-color);
               border-radius: 3px;
             }
             
             .meta-priority {
-              color: rgba(255, 255, 255, 0.6);
+              color: var(--text-secondary);
             }
           }
         }
@@ -2613,18 +2695,18 @@ watch([currentStep, formData, generatedFunctionPoints, generatedTestCases, saved
           margin-right: 12px;
           
           &.draft {
-            background: rgba(255, 255, 255, 0.1);
-            color: rgba(255, 255, 255, 0.6);
+            background: var(--text-secondary-light);
+            color: var(--text-secondary);
           }
           
           &.approved {
-            background: rgba(103, 194, 58, 0.2);
-            color: #67c23a;
+            background: var(--success-color-light);
+            color: var(--success-color);
           }
           
           &.rejected {
-            background: rgba(245, 108, 108, 0.2);
-            color: #f56c6c;
+            background: var(--danger-color-light);
+            color: var(--danger-color);
           }
         }
         
@@ -2641,9 +2723,9 @@ watch([currentStep, formData, generatedFunctionPoints, generatedTestCases, saved
     .final-review-section {
       margin-top: 28px;
       padding: 24px;
-      background: linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.06) 100%);
+      background: var(--card-bg-hover);
       border-radius: 14px;
-      border: 1px solid rgba(102, 126, 234, 0.12);
+      border: 1px solid var(--border-color);
       
       .review-summary {
         text-align: center;
@@ -2652,7 +2734,7 @@ watch([currentStep, formData, generatedFunctionPoints, generatedTestCases, saved
         .summary-title {
           font-size: 15px;
           font-weight: 600;
-          color: rgba(255, 255, 255, 0.85);
+          color: var(--text-primary);
           margin-bottom: 14px;
         }
         
@@ -2661,7 +2743,7 @@ watch([currentStep, formData, generatedFunctionPoints, generatedTestCases, saved
           justify-content: center;
           gap: 28px;
           font-size: 13px;
-          color: rgba(255, 255, 255, 0.6);
+          color: var(--text-secondary);
           
           .stat-item {
             display: flex;
@@ -2678,22 +2760,22 @@ watch([currentStep, formData, generatedFunctionPoints, generatedTestCases, saved
               font-size: 12px;
               
               &.total {
-                background: rgba(102, 126, 234, 0.2);
-                color: #667eea;
+                background: var(--primary-color-light);
+                color: var(--primary-color);
               }
               &.approved {
-                background: rgba(103, 194, 58, 0.2);
-                color: #67c23a;
+                background: var(--success-color-light);
+                color: var(--success-color);
               }
               &.pending {
-                background: rgba(230, 162, 60, 0.2);
-                color: #e6a23c;
+                background: var(--warning-color-light);
+                color: var(--warning-color);
               }
             }
             
             .stat-number {
               font-weight: 700;
-              color: #fff;
+              color: var(--text-primary);
             }
           }
         }
@@ -2714,7 +2796,7 @@ watch([currentStep, formData, generatedFunctionPoints, generatedTestCases, saved
         }
         
         :deep(.el-button--success) {
-          background: linear-gradient(135deg, #67c23a 0%, #43e97b 100%);
+          background: var(--success-gradient, linear-gradient(135deg, #67c23a 0%, #43e97b 100%));
           border: none;
           
           &:hover:not(:disabled) {
@@ -2724,7 +2806,7 @@ watch([currentStep, formData, generatedFunctionPoints, generatedTestCases, saved
         }
         
         :deep(.el-button--primary) {
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          background: var(--primary-gradient);
           border: none;
           
           &:hover:not(:disabled) {
@@ -2744,7 +2826,7 @@ watch([currentStep, formData, generatedFunctionPoints, generatedTestCases, saved
       span {
         font-weight: 500;
         font-size: 16px;
-        color: #fff;
+        color: var(--text-primary);
       }
       
       .fp-actions {
@@ -2752,7 +2834,7 @@ watch([currentStep, formData, generatedFunctionPoints, generatedTestCases, saved
         gap: 10px;
         
         .el-button--primary {
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          background: var(--primary-gradient);
           border: none;
           
           &:hover {
@@ -2766,7 +2848,7 @@ watch([currentStep, formData, generatedFunctionPoints, generatedTestCases, saved
       padding: 40px 0;
       
       :deep(.el-empty__description) {
-        color: rgba(255, 255, 255, 0.5);
+        color: var(--text-tertiary);
       }
     }
     
@@ -2776,59 +2858,79 @@ watch([currentStep, formData, generatedFunctionPoints, generatedTestCases, saved
     
     // ===== 详情弹窗测试步骤 =====
     .test-steps {
-      margin-top: 24px;
+      margin-top: 28px;
       
       h4 {
-        margin-bottom: 12px;
-        color: rgba(255, 255, 255, 0.85);
-        font-size: 14px;
-        font-weight: 600;
+        margin-bottom: 16px;
+        color: var(--text-primary);
+        font-size: 15px;
+        font-weight: 700;
+        letter-spacing: 0.3px;
+        text-transform: uppercase;
       }
       
       .steps-list {
         display: flex;
         flex-direction: column;
-        gap: 8px;
+        gap: 12px;
         
         .step-item {
           display: flex;
-          gap: 14px;
-          padding: 12px 16px;
-          background: rgba(255, 255, 255, 0.03);
-          border-radius: 8px;
-          border: 1px solid rgba(255, 255, 255, 0.05);
+          gap: 16px;
+          padding: 16px 20px;
+          background: var(--card-bg-hover);
+          border-radius: 10px;
+          border: 1px solid var(--border-color);
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+          
+          &:hover {
+            background: var(--card-bg-active);
+            border-color: var(--primary-color);
+            box-shadow: 0 4px 16px rgba(102, 126, 234, 0.2);
+            transform: translateY(-2px);
+          }
           
           .step-number {
-            width: 28px;
-            height: 28px;
+            width: 32px;
+            height: 32px;
             border-radius: 8px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: var(--primary-gradient);
             color: #fff;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 12px;
-            font-weight: 600;
+            font-size: 13px;
+            font-weight: 700;
             flex-shrink: 0;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
           }
           
           .step-content {
             flex: 1;
             
             .step-action {
-              font-size: 13px;
-              color: rgba(255, 255, 255, 0.85);
-              line-height: 1.5;
+              font-size: 14px;
+              color: var(--text-primary);
+              line-height: 1.7;
+              font-weight: 500;
             }
             
             .step-expected {
-              margin-top: 6px;
-              font-size: 12px;
-              color: rgba(255, 255, 255, 0.45);
+              margin-top: 8px;
+              font-size: 13px;
+              color: var(--text-secondary);
+              padding: 8px 12px;
+              background: rgba(103, 194, 58, 0.1);
+              border-radius: 6px;
+              border-left: 3px solid var(--success-color);
               
               .expected-label {
-                color: rgba(103, 194, 58, 0.8);
-                font-weight: 500;
+                color: var(--success-color);
+                font-weight: 600;
+                text-transform: uppercase;
+                font-size: 11px;
+                letter-spacing: 0.5px;
               }
             }
           }
@@ -2840,11 +2942,25 @@ watch([currentStep, formData, generatedFunctionPoints, generatedTestCases, saved
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 8px;
-      padding: 24px;
-      color: rgba(255, 255, 255, 0.3);
-      font-size: 13px;
-      margin-top: 16px;
+      gap: 12px;
+      padding: 32px 24px;
+      color: var(--text-tertiary);
+      font-size: 14px;
+      margin-top: 20px;
+      background: var(--card-bg-hover);
+      border-radius: 10px;
+      border: 1px dashed var(--border-color);
+      transition: all 0.3s ease;
+      
+      &:hover {
+        background: var(--card-bg-active);
+        border-color: var(--border-color-hover);
+      }
+      
+      .el-icon {
+        font-size: 24px;
+        opacity: 0.6;
+      }
     }
     
     .dialog-footer-actions {
@@ -2853,17 +2969,17 @@ watch([currentStep, formData, generatedFunctionPoints, generatedTestCases, saved
       gap: 10px;
       
       :deep(.el-button--success) {
-        background: linear-gradient(135deg, #67c23a 0%, #43e97b 100%);
+        background: var(--success-gradient, linear-gradient(135deg, #67c23a 0%, #43e97b 100%));
         border: none;
       }
       
       :deep(.el-button--danger) {
-        background: rgba(245, 108, 108, 0.15);
-        border: 1px solid rgba(245, 108, 108, 0.3);
-        color: #fca5a5;
+        background: var(--danger-color-light);
+        border: 1px solid var(--danger-color-light);
+        color: var(--danger-color);
         
         &:hover:not(:disabled) {
-          background: rgba(245, 108, 108, 0.25);
+          background: var(--danger-color-light);
         }
       }
     }
@@ -2871,9 +2987,9 @@ watch([currentStep, formData, generatedFunctionPoints, generatedTestCases, saved
     .status-text {
       font-weight: 500;
       
-      &.draft { color: #d1d5db; }
-      &.approved { color: #86efac; }
-      &.rejected { color: #fca5a5; }
+      &.draft { color: var(--text-secondary); }
+      &.approved { color: var(--success-color); }
+      &.rejected { color: var(--danger-color); }
     }
     
     .batch-actions {
@@ -2889,63 +3005,63 @@ watch([currentStep, formData, generatedFunctionPoints, generatedTestCases, saved
     margin-top: 30px;
     
     .el-button--primary {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: var(--primary-gradient);
       border: none;
     }
   }
   
   :deep(.el-form-item__label) {
-    color: rgba(255, 255, 255, 0.8);
+    color: var(--text-secondary);
   }
   
   :deep(.el-input__wrapper),
   :deep(.el-textarea__inner),
   :deep(.el-select .el-input__wrapper) {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: var(--card-bg-hover);
+    border: 1px solid var(--border-color);
     box-shadow: none;
     
     &:hover, &:focus {
-      border-color: rgba(102, 126, 234, 0.5);
+      border-color: var(--primary-color);
     }
     
     input, textarea {
-      color: #fff;
+      color: var(--text-primary);
       
       &::placeholder {
-        color: rgba(255, 255, 255, 0.3);
+        color: var(--text-tertiary);
       }
     }
   }
   
   :deep(.el-select-dropdown) {
-    background: #1a1a2e;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
     
     .el-select-dropdown__item {
-      color: rgba(255, 255, 255, 0.8);
+      color: var(--text-secondary);
       
       &:hover, &.hover {
-        background: rgba(255, 255, 255, 0.05);
+        background: var(--card-bg-hover);
       }
       
       &.selected {
-        color: #667eea;
+        color: var(--primary-color);
       }
     }
   }
   
   :deep(.el-checkbox) {
-    color: rgba(255, 255, 255, 0.8);
+    color: var(--text-secondary);
     
     .el-checkbox__inner {
-      background: rgba(255, 255, 255, 0.05);
-      border-color: rgba(255, 255, 255, 0.2);
+      background: var(--card-bg-hover);
+      border-color: var(--border-color);
     }
     
     &.is-checked .el-checkbox__inner {
-      background: #667eea;
-      border-color: #667eea;
+      background: var(--primary-color);
+      border-color: var(--primary-color);
     }
   }
   
@@ -2957,53 +3073,53 @@ watch([currentStep, formData, generatedFunctionPoints, generatedTestCases, saved
     }
     
     th.el-table__cell {
-      background: rgba(255, 255, 255, 0.05);
-      color: rgba(255, 255, 255, 0.9);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      background: var(--card-bg-hover);
+      color: var(--text-primary);
+      border-bottom: 1px solid var(--border-color);
       font-weight: 600;
     }
     
     td.el-table__cell {
       background: transparent;
-      color: rgba(255, 255, 255, 0.9);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      color: var(--text-primary);
+      border-bottom: 1px solid var(--border-color);
     }
     
     tr:hover td.el-table__cell {
-      background: rgba(255, 255, 255, 0.03);
+      background: var(--card-bg-hover);
     }
     
     .el-table__empty-text {
-      color: rgba(255, 255, 255, 0.4);
+      color: var(--text-tertiary);
     }
     
     .cell {
-      color: #fff;
+      color: var(--text-primary);
       
       span {
-        color: #fff;
+        color: var(--text-primary);
       }
     }
   }
   
   :deep(.el-alert) {
-    background: rgba(102, 126, 234, 0.1);
-    border: 1px solid rgba(102, 126, 234, 0.3);
+    background: var(--primary-color-light);
+    border: 1px solid var(--primary-color-light);
     
     .el-alert__title {
-      color: rgba(255, 255, 255, 0.9);
+      color: var(--text-primary);
     }
     
     .el-alert__icon {
-      color: #667eea;
+      color: var(--primary-color);
     }
     
     &.el-alert--success {
-      background: rgba(103, 194, 58, 0.1);
-      border-color: rgba(103, 194, 58, 0.3);
+      background: var(--success-color-light);
+      border-color: var(--success-color-light);
       
       .el-alert__icon {
-        color: #67c23a;
+        color: var(--success-color);
       }
     }
   }
@@ -3014,7 +3130,7 @@ watch([currentStep, formData, generatedFunctionPoints, generatedTestCases, saved
     
     .el-divider__text {
       background-color: transparent;
-      color: rgba(255, 255, 255, 0.85);
+      color: var(--text-primary);
       padding: 0;
       padding-bottom: 12px;
       font-weight: 600;
@@ -3029,7 +3145,7 @@ watch([currentStep, formData, generatedFunctionPoints, generatedTestCases, saved
         bottom: 0;
         width: 100%;
         height: 1px;
-        background: linear-gradient(90deg, rgba(255, 255, 255, 0.2) 0%, transparent 100%);
+        background: linear-gradient(90deg, var(--border-color) 0%, transparent 100%);
       }
     }
     
@@ -3045,33 +3161,316 @@ watch([currentStep, formData, generatedFunctionPoints, generatedTestCases, saved
   }
   
   :deep(.el-dialog) {
-    background: #1a1a2e;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    
-    .el-dialog__title {
-      color: #fff;
-    }
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     
     .el-dialog__header {
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      border-bottom: 1px solid var(--border-color);
+      padding: 20px 28px;
+      background: linear-gradient(180deg, rgba(102, 126, 234, 0.05) 0%, transparent 100%);
+      
+      .el-dialog__title {
+        color: var(--text-primary);
+        font-weight: 700;
+        font-size: 20px;
+        letter-spacing: -0.5px;
+        text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+      }
+      
+      .el-dialog__close {
+        color: var(--text-secondary);
+        transition: all 0.3s ease;
+        
+        &:hover {
+          color: var(--text-primary);
+          transform: rotate(90deg);
+        }
+      }
     }
     
     .el-dialog__body {
-      color: rgba(255, 255, 255, 0.8);
+      color: var(--text-primary);
+      font-size: 14px;
+      line-height: 1.7;
+      padding: 28px;
+      background: radial-gradient(ellipse at top, rgba(102, 126, 234, 0.03) 0%, transparent 70%);
+      
+      :deep(.el-form-item__label) {
+        color: var(--text-secondary);
+        font-weight: 500;
+        font-size: 13px;
+      }
+      
+      :deep(.el-input__wrapper),
+      :deep(.el-textarea__inner),
+      :deep(.el-select__wrapper) {
+        background: var(--card-bg-hover);
+        border: 1px solid var(--border-color);
+        color: var(--text-primary);
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        
+        &:hover {
+          border-color: var(--primary-color);
+          box-shadow: 0 4px 16px rgba(102, 126, 234, 0.2);
+        }
+        
+        &:focus-within {
+          border-color: var(--primary-color);
+          box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1), 0 4px 16px rgba(102, 126, 234, 0.3);
+        }
+      }
+      
+      :deep(.el-input__inner),
+      :deep(.el-textarea__inner) {
+        background: transparent;
+        color: var(--text-primary);
+        
+        &::placeholder {
+          color: var(--text-tertiary);
+        }
+      }
+      
+      :deep(.el-select-dropdown) {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        
+        .el-select-dropdown__item {
+          color: var(--text-secondary);
+          padding: 10px 16px;
+          transition: all 0.2s ease;
+          
+          &:hover {
+            background: var(--card-bg-hover);
+            color: var(--text-primary);
+          }
+          
+          &.selected {
+            background: var(--primary-color-light);
+            color: var(--primary-color);
+            font-weight: 600;
+          }
+        }
+      }
+      
+      /* 优化el-descriptions在对话框中的样式 */
+      :deep(.el-descriptions) {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 24px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        position: relative;
+        overflow: hidden;
+        
+        &::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          height: 1px;
+          background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.3), transparent);
+        }
+        
+        .el-descriptions__body {
+          .el-descriptions__table {
+            .el-descriptions__label {
+              background: linear-gradient(135deg, var(--primary-color-light) 0%, rgba(102, 126, 234, 0.05) 100%);
+              color: var(--text-primary);
+              font-weight: 700;
+              font-size: 13px;
+              padding: 14px 18px;
+              border-radius: 6px;
+              border: 1px solid rgba(102, 126, 234, 0.2);
+              text-transform: uppercase;
+              letter-spacing: 0.5px;
+              box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            }
+            
+            .el-descriptions__content {
+              color: var(--text-primary);
+              font-size: 14px;
+              padding: 14px 18px;
+              line-height: 1.7;
+              font-weight: 400;
+            }
+            
+            .el-descriptions__cell {
+              border-color: var(--border-color);
+              background: rgba(255, 255, 255, 0.02);
+              transition: all 0.2s ease;
+              
+              &:hover {
+                background: rgba(255,255, 255, 0.04);
+              }
+            }
+            
+            .el-tag {
+              font-weight: 600;
+              padding: 6px 14px;
+              border-radius: 6px;
+              font-size: 12px;
+              letter-spacing: 0.3px;
+              box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+              
+              &.el-tag--primary {
+                background: linear-gradient(135deg, rgba(102, 126, 234, 0.25) 0%, rgba(118, 75, 162, 0.25) 100%);
+                border: 1px solid rgba(102, 126, 234, 0.4);
+                color: #a5b4fc;
+              }
+              
+              &.el-tag--success {
+                background: linear-gradient(135deg, rgba(103, 194, 58, 0.25) 0%, rgba(67, 233, 123, 0.25) 100%);
+                border: 1px solid rgba(103, 194, 58, 0.4);
+                color: #86efac;
+              }
+              
+              &.el-tag--warning {
+                background: linear-gradient(135deg, rgba(230, 162, 60, 0.25) 0%, rgba(251, 191, 36, 0.25) 100%);
+                border: 1px solid rgba(230, 162, 60, 0.4);
+                color: #fcd34d;
+              }
+              
+              &.el-tag--danger {
+                background: linear-gradient(135deg, rgba(245, 108, 108, 0.25) 0%, rgba(248, 113, 113, 0.25) 100%);
+                border: 1px solid rgba(245, 108, 108, 0.4);
+                color: #fca5a5;
+              }
+              
+              &.el-tag--info {
+                background: linear-gradient(135deg, rgba(176, 176, 176, 0.25) 0%, rgba(156, 163, 175, 0.25) 100%);
+                border: 1px solid rgba(176, 176, 176, 0.4);
+                color: #d1d5db;
+              }
+            }
+          }
+        }
+      }
+    }
+    
+    .el-dialog__footer {
+      border-top: 1px solid var(--border-color);
+      padding: 20px 28px;
+      background: linear-gradient(0deg, rgba(102, 126, 234, 0.03) 0%, transparent 100%);
+      
+      .el-button {
+        padding: 10px 24px;
+        font-size: 14px;
+        font-weight: 600;
+        border-radius: 8px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        letter-spacing: 0.3px;
+        
+        &--primary {
+          background: var(--primary-gradient);
+          border: none;
+          box-shadow: 0 4px 16px rgba(102, 126, 234, 0.3);
+          
+          &:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
+          }
+          
+          &:active:not(:disabled) {
+            transform: translateY(0);
+          }
+        }
+        
+        &--default {
+          background: var(--card-bg-hover);
+          border: 1px solid var(--border-color);
+          color: var(--text-secondary);
+          
+          &:hover:not(:disabled) {
+            background: var(--card-bg-active);
+            border-color: var(--border-color-hover);
+            color: var(--text-primary);
+          }
+        }
+        
+        &--success {
+          background: linear-gradient(135deg, #67c23a 0%, #43e97b 100%);
+          border: none;
+          box-shadow: 0 4px 16px rgba(103, 194, 58, 0.3);
+          
+          &:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(103, 194, 58, 0.4);
+          }
+        }
+        
+        &--danger {
+          background: linear-gradient(135deg, #f56c6c 0%, #ef4444 100%);
+          border: none;
+          box-shadow: 0 4px 16px rgba(245, 108, 108, 0.3);
+          
+          &:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(245, 108, 108, 0.4);
+          }
+        }
+      }
     }
   }
   
   :deep(.el-descriptions) {
+    background: var(--card-bg-hover);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 20px;
+    color: var(--text-primary);
+    
+    .el-descriptions__body {
+      color: var(--text-primary);
+    }
+    
+    .el-descriptions__table {
+      color: var(--text-primary);
+    }
+    
     .el-descriptions__label {
-      color: rgba(255, 255, 255, 0.6);
+      color: var(--text-primary);
+      font-size: 14px;
+      font-weight: 500;
+      background: var(--primary-color-light);
+      padding: 8px 12px;
+      border-radius: 4px;
+      min-width: 100px;
+      border-color: var(--border-color);
     }
     
     .el-descriptions__content {
-      color: rgba(255, 255, 255, 0.9);
+      color: var(--text-primary);
+      font-size: 14px;
+      line-height: 1.6;
+      padding: 8px 12px;
+      border-color: var(--border-color);
     }
     
     .el-descriptions__cell {
-      border-color: rgba(255, 255, 255, 0.1);
+      border-color: var(--border-color);
+      padding: 12px 16px;
+      color: var(--text-primary);
+      
+      .el-tag {
+        font-size: 12px;
+        padding: 4px 10px;
+        border-radius: 4px;
+        font-weight: 500;
+      }
+    }
+    
+    .el-descriptions__row {
+      border-color: var(--border-color);
     }
   }
   

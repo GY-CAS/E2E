@@ -2,6 +2,7 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 html, body {
@@ -10,64 +11,515 @@ html, body {
   font-family: 'Helvetica Neue', Helvetica, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', Arial, sans-serif;
 }
 
+.light-theme {
+  --primary-color: #5b8cff;
+  --primary-hover: #7a9fff;
+  --background-color: #f8fafc;
+  --surface-color: #ffffff;
+  --text-primary: #1e293b;
+  --text-secondary: #475569;
+  --text-tertiary: #94a3b8;
+  --border-color: #e2e8f0;
+  --border-light: #f1f5f9;
+  --success-color: #22c55e;
+  --warning-color: #f59e0b;
+  --danger-color: #ef4444;
+  --info-color: #64748b;
+  --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  --card-bg: #ffffff;
+  --card-bg-hover: #f8fafc;
+  --card-bg-active: #f1f5f9;
+  --primary-gradient: linear-gradient(135deg, #5b8cff 0%, #7a9fff 100%);
+  --success-color-light: rgba(34, 197, 94, 0.1);
+  --warning-color-light: rgba(245, 158, 11, 0.1);
+  --primary-color-light: rgba(91, 140, 255, 0.1);
+  --danger-color-light: rgba(239, 68, 68, 0.1);
+  --text-secondary-light: rgba(71, 85, 105, 0.1);
+  --code-bg: #f8fafc;
+  --code-text: #1e293b;
+  --border-color-hover: #cbd5e1;
+}
+
+.dark-theme {
+  --primary-color: #6366f1;
+  --primary-hover: #818cf8;
+  --background-color: #0f172a;
+  --surface-color: #1e293b;
+  --text-primary: #f1f5f9;
+  --text-secondary: #cbd5e1;
+  --text-tertiary: #94a3b8;
+  --border-color: #334155;
+  --border-light: #1e293b;
+  --success-color: #22c55e;
+  --warning-color: #f59e0b;
+  --danger-color: #ef4444;
+  --info-color: #64748b;
+  --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  --card-bg: #1e293b;
+  --card-bg-hover: #334155;
+  --card-bg-active: #475569;
+  --primary-gradient: linear-gradient(135deg, #6366f1 0%, #818cf8 100%);
+  --success-color-light: rgba(34, 197, 94, 0.15);
+  --warning-color-light: rgba(245, 158, 11, 0.15);
+  --primary-color-light: rgba(99, 102, 241, 0.15);
+  --danger-color-light: rgba(239, 68, 68, 0.15);
+  --text-secondary-light: rgba(203, 213, 225, 0.1);
+  --code-bg: #1e293b;
+  --code-text: #cbd5e1;
+  --border-color-hover: #475569;
+}
+
+body {
+  background-color: var(--background-color);
+  color: var(--text-primary);
+}
+
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background-color: #c1c1c1;
-  border-radius: 3px;
+  background-color: var(--text-tertiary);
+  border-radius: 4px;
+  
+  &:hover {
+    background-color: var(--text-secondary);
+  }
 }
 
 ::-webkit-scrollbar-track {
-  background-color: #f1f1f1;
+  background-color: var(--border-light);
 }
 
 .el-card {
-  border-radius: 8px;
+  border-radius: 12px;
+  background-color: var(--surface-color);
+  border: 1px solid var(--border-color);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   
   .el-card__header {
-    padding: 16px 20px;
-    border-bottom: 1px solid #EBEEF5;
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-primary);
+  }
+  
+  .el-card__body {
+    color: var(--text-primary);
   }
 }
 
 .el-table {
+  --el-table-bg-color: var(--surface-color);
+  --el-table-tr-bg-color: var(--surface-color);
+  --el-table-header-bg-color: var(--border-light);
+  --el-table-row-hover-bg-color: var(--card-bg-hover);
+  --el-table-border-color: var(--border-color);
+  --el-table-text-color: var(--text-primary);
+  --el-table-header-text-color: var(--text-secondary);
+  
   .el-table__header th {
-    background-color: #f5f7fa !important;
+    background-color: var(--border-light) !important;
   }
 }
 
 .el-dialog {
-  border-radius: 8px;
+  border-radius: 16px;
+  background-color: var(--surface-color);
+  border: 1px solid var(--border-color);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05);
   
   .el-dialog__header {
-    border-bottom: 1px solid #EBEEF5;
-    padding: 16px 20px;
+    border-bottom: 1px solid var(--border-color);
+    padding: 20px 24px;
     margin-right: 0;
+    
+    .el-dialog__title {
+      color: var(--text-primary);
+      font-weight: 600;
+      font-size: 18px;
+    }
+    
+    .el-dialog__close {
+      color: var(--text-tertiary);
+      transition: all 0.2s ease;
+      
+      &:hover {
+        color: var(--text-primary);
+        background-color: var(--card-bg-hover);
+        border-radius: 4px;
+      }
+    }
   }
   
   .el-dialog__body {
-    padding: 20px;
+    padding: 24px;
+    color: var(--text-primary);
   }
   
   .el-dialog__footer {
-    border-top: 1px solid #EBEEF5;
-    padding: 12px 20px;
+    border-top: 1px solid var(--border-color);
+    padding: 16px 24px;
   }
 }
 
 .el-button {
-  border-radius: 4px;
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    transform: translateY(-1px);
+  }
+  
+  &:active {
+    transform: translateY(0);
+  }
 }
 
 .el-input__wrapper,
 .el-select__wrapper,
 .el-textarea__inner {
-  border-radius: 4px;
+  border-radius: 8px;
+  background-color: var(--card-bg-hover);
+  border: 1px solid var(--border-color);
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
+  
+  &:hover {
+    border-color: var(--border-color-hover);
+  }
+  
+  &:focus-within {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px var(--primary-color-light), 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  }
 }
 
 .el-tag {
-  border-radius: 4px;
+  border-radius: 6px;
+  font-weight: 500;
+  padding: 4px 10px;
+  
+  &.el-tag--light {
+    color: var(--text-primary);
+  }
+  
+  &.el-tag--primary {
+    background-color: var(--primary-color-light);
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+  }
+  
+  &.el-tag--success {
+    background-color: var(--success-color-light);
+    border-color: var(--success-color);
+    color: var(--success-color);
+  }
+  
+  &.el-tag--warning {
+    background-color: var(--warning-color-light);
+    border-color: var(--warning-color);
+    color: var(--warning-color);
+  }
+  
+  &.el-tag--danger {
+    background-color: var(--danger-color-light);
+    border-color: var(--danger-color);
+    color: var(--danger-color);
+  }
+  
+  &.el-tag--info {
+    background-color: var(--text-secondary-light);
+    border-color: var(--text-secondary);
+    color: var(--text-secondary);
+  }
+}
+
+/* 全局el-descriptions样式 - 确保在黑夜模式下正确显示 */
+.el-descriptions {
+  background-color: transparent !important;
+  border-radius: 12px;
+  
+  .el-descriptions__body {
+    .el-descriptions__table {
+      background-color: transparent !important;
+      border-collapse: separate;
+      border-spacing: 0;
+      
+      tr {
+        background-color: transparent !important;
+        
+        &:hover {
+          background-color: transparent !important;
+        }
+        
+        td {
+          background-color: transparent !important;
+        }
+      }
+      
+      .el-descriptions__label {
+        background-color: var(--primary-color-light) !important;
+        color: var(--text-primary) !important;
+        border-color: var(--border-color) !important;
+        font-weight: 600;
+        padding: 14px 18px !important;
+        border-radius: 6px 0 0 6px;
+      }
+      
+      .el-descriptions__content {
+        background-color: var(--card-bg) !important;
+        color: var(--text-primary) !important;
+        border-color: var(--border-color) !important;
+        padding: 14px 18px !important;
+        border-radius: 0 6px 6px 0;
+      }
+      
+      .el-descriptions__cell {
+        border-color: var(--border-color) !important;
+        padding: 2px !important;
+      }
+    }
+  }
+}
+
+/* 深色主题下的Element Plus组件样式覆盖 */
+.dark-theme {
+  /* 确保所有表格和描述组件都使用深色背景 */
+  .el-descriptions {
+    .el-descriptions__body {
+      .el-descriptions__table {
+        tr {
+          .el-descriptions__cell {
+            background-color: transparent !important;
+          }
+          
+          .el-descriptions__label {
+            background-color: var(--primary-color-light) !important;
+            color: var(--text-primary) !important;
+          }
+          
+          .el-descriptions__content {
+            background-color: rgba(148, 163, 184, 0.05) !important;
+            color: var(--text-primary) !important;
+          }
+        }
+      }
+    }
+  }
+  
+  /* 确保所有对话框在深色主题下正确显示 */
+  .el-dialog {
+    .el-dialog__body {
+      .el-descriptions {
+        .el-descriptions__body {
+          .el-descriptions__table {
+            background-color: transparent !important;
+          }
+        }
+      }
+    }
+  }
+  
+  /* 输入框和选择器的深色模式样式 */
+  .el-input__wrapper,
+  .el-select__wrapper,
+  .el-textarea__inner {
+    background-color: rgba(30, 41, 59, 0.8) !important;
+    border-color: var(--border-color) !important;
+    
+    &:hover {
+      border-color: var(--border-color-hover) !important;
+    }
+    
+    &:focus-within {
+      border-color: var(--primary-color) !important;
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2) !important;
+    }
+    
+    input, textarea {
+      color: var(--text-primary) !important;
+      
+      &::placeholder {
+        color: var(--text-tertiary) !important;
+      }
+    }
+  }
+  
+  /* 选择器下拉框样式 */
+  .el-select-dropdown {
+    background-color: var(--surface-color) !important;
+    border: 1px solid var(--border-color) !important;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3) !important;
+    
+    .el-select-dropdown__item {
+      color: var(--text-secondary) !important;
+      
+      &:hover {
+        background-color: var(--card-bg-hover) !important;
+        color: var(--text-primary) !important;
+      }
+      
+      &.selected {
+        background-color: var(--primary-color-light) !important;
+        color: var(--primary-color) !important;
+      }
+    }
+  }
+}
+
+/* 功能点详情对话框样式 */
+.view-fp-dialog {
+  .fp-detail-container {
+    .fp-detail-header {
+      margin-bottom: 20px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border-color);
+      
+      .fp-name-section {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        
+        .fp-icon-small {
+          width: 40px;
+          height: 40px;
+          border-radius: 8px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+          
+          .el-icon {
+            font-size: 20px;
+            color: #ffffff;
+          }
+          
+          &.functional {
+            background-color: var(--primary-color);
+          }
+          
+          &.performance {
+            background-color: var(--warning-color);
+          }
+          
+          &.security {
+            background-color: var(--danger-color);
+          }
+          
+          &.reliability {
+            background-color: var(--info-color);
+          }
+        }
+        
+        .fp-name-wrapper {
+          flex: 1;
+          min-width: 0;
+          
+          .fp-detail-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0 0 6px 0;
+            line-height: 1.3;
+            word-break: break-word;
+          }
+          
+          .fp-meta-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+          }
+        }
+      }
+    }
+    
+    .fp-detail-content {
+      .info-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+        margin-bottom: 20px;
+        
+        .info-item {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+          
+          .info-label {
+            font-size: 12px;
+            color: var(--text-tertiary);
+            font-weight: 500;
+          }
+          
+          .info-value {
+            font-size: 14px;
+            color: var(--text-primary);
+            font-weight: 500;
+            word-break: break-word;
+          }
+        }
+      }
+      
+      .detail-section {
+        margin-bottom: 16px;
+        
+        &:last-child {
+          margin-bottom: 0;
+        }
+        
+        .section-title {
+          font-size: 13px;
+          font-weight: 600;
+          color: var(--text-secondary);
+          margin-bottom: 8px;
+          padding-left: 6px;
+          border-left: 2px solid var(--primary-color);
+        }
+        
+        .detail-content {
+          font-size: 14px;
+          color: var(--text-primary);
+          line-height: 1.6;
+          word-break: break-word;
+          white-space: pre-wrap;
+          padding: 12px;
+          background-color: var(--card-bg-hover);
+          border-radius: 6px;
+          border: 1px solid var(--border-color);
+        }
+      }
+    }
+  }
+}
+
+/* 深色主题下功能点详情对话框特殊样式 */
+.dark-theme {
+  .view-fp-dialog {
+    .fp-detail-container {
+      .fp-detail-content {
+        .detail-section {
+          .detail-content {
+            background-color: rgba(51, 65, 85, 0.3);
+          }
+        }
+      }
+    }
+  }
+}
+
+/* 浅色主题下的特殊样式 */
+.light-theme {
+  .el-descriptions {
+    .el-descriptions__body {
+      .el-descriptions__table {
+        tr {
+          .el-descriptions__content {
+            background-color: #ffffff !important;
+          }
+        }
+      }
+    }
+  }
 }

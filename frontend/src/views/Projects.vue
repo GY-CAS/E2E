@@ -35,7 +35,7 @@
               <el-icon><View /></el-icon>
               查看
             </el-button>
-            <el-button type="success" text size="small" @click="goToGenerate(project)">
+            <el-button v-if="false" type="success" text size="small" @click="goToGenerate(project)">
               <el-icon><MagicStick /></el-icon>
               生成用例
             </el-button>
@@ -217,9 +217,9 @@ onMounted(() => {
 <style lang="scss" scoped>
 .projects-page {
   min-height: calc(100vh - 60px);
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  background: var(--background-color);
   padding: 24px;
-  color: #fff;
+  color: var(--text-primary);
   
   .page-header {
     display: flex;
@@ -227,26 +227,27 @@ onMounted(() => {
     align-items: center;
     margin-bottom: 24px;
     padding: 20px 24px;
-    background: rgba(255, 255, 255, 0.05);
+    background: var(--surface-color);
     border-radius: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--border-color);
     
     .header-content {
       .page-title {
         font-size: 22px;
         font-weight: 600;
         margin: 0 0 6px 0;
+        color: var(--text-primary);
       }
       
       .page-subtitle {
         font-size: 13px;
-        color: rgba(255, 255, 255, 0.5);
+        color: var(--text-tertiary);
         margin: 0;
       }
     }
     
     .create-btn {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);
       border: none;
       
       &:hover {
@@ -256,9 +257,9 @@ onMounted(() => {
   }
   
   .content-card {
-    background: rgba(255, 255, 255, 0.05);
+    background: var(--surface-color);
     border-radius: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--border-color);
     padding: 20px;
     
     .projects-list {
@@ -266,13 +267,13 @@ onMounted(() => {
         display: flex;
         align-items: center;
         padding: 16px 20px;
-        background: rgba(255, 255, 255, 0.03);
+        background: var(--border-light);
         border-radius: 10px;
         margin-bottom: 12px;
         transition: all 0.3s ease;
         
         &:hover {
-          background: rgba(255, 255, 255, 0.06);
+          background: var(--border-color);
           
           .project-actions {
             opacity: 1;
@@ -283,7 +284,7 @@ onMounted(() => {
           width: 44px;
           height: 44px;
           border-radius: 10px;
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);
           display: flex;
           align-items: center;
           justify-content: center;
@@ -304,6 +305,7 @@ onMounted(() => {
             font-size: 15px;
             font-weight: 500;
             margin-bottom: 6px;
+            color: var(--text-primary);
           }
           
           .project-meta {
@@ -320,12 +322,12 @@ onMounted(() => {
             .status-tag {
               &.active {
                 background: rgba(103, 194, 58, 0.2);
-                color: #67c23a;
+                color: var(--success-color);
               }
               
               &.archived {
-                background: rgba(255, 255, 255, 0.1);
-                color: rgba(255, 255, 255, 0.5);
+                background: var(--border-light);
+                color: var(--text-tertiary);
               }
             }
             
@@ -333,7 +335,7 @@ onMounted(() => {
               display: flex;
               align-items: center;
               gap: 4px;
-              color: rgba(255, 255, 255, 0.5);
+              color: var(--text-tertiary);
             }
           }
         }
@@ -341,7 +343,7 @@ onMounted(() => {
         .project-desc {
           flex: 1;
           font-size: 13px;
-          color: rgba(255, 255, 255, 0.5);
+          color: var(--text-tertiary);
           line-height: 1.5;
           overflow: hidden;
           text-overflow: ellipsis;
@@ -361,7 +363,7 @@ onMounted(() => {
       .empty-state {
         text-align: center;
         padding: 60px 20px;
-        color: rgba(255, 255, 255, 0.4);
+        color: var(--text-tertiary);
         
         .el-icon {
           font-size: 64px;
@@ -380,28 +382,30 @@ onMounted(() => {
       justify-content: center;
       margin-top: 20px;
       padding-top: 20px;
-      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      border-top: 1px solid var(--border-color);
       
       :deep(.el-pagination) {
         .el-pagination__total {
-          color: rgba(255, 255, 255, 0.6);
+          color: var(--text-secondary);
         }
         
         .btn-prev, .btn-next, .el-pager li {
-          background: rgba(255, 255, 255, 0.05);
-          color: rgba(255, 255, 255, 0.8);
+          background: var(--surface-color);
+          color: var(--text-secondary);
+          border: 1px solid var(--border-color);
           
           &:hover {
-            background: rgba(255, 255, 255, 0.1);
+            background: var(--border-light);
           }
           
           &.is-active {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);
             color: #fff;
+            border-color: var(--primary-color);
           }
           
           &.is-disabled {
-            color: rgba(255, 255, 255, 0.3);
+            color: var(--text-tertiary);
           }
         }
       }
@@ -409,58 +413,46 @@ onMounted(() => {
   }
 }
 
-:deep(.dark-dialog) {
-  .el-dialog {
-    background: #1a1a2e;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+:deep(.el-dialog) {
+  .el-dialog__header {
+    .el-dialog__title {
+      color: var(--text-primary);
+    }
+  }
+  
+  .el-dialog__body {
+    color: var(--text-primary);
+  }
+  
+  .el-form-item__label {
+    color: var(--text-secondary);
+  }
+  
+  .el-input__wrapper {
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
+    box-shadow: none;
     
-    .el-dialog__header {
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-      
-      .el-dialog__title {
-        color: #fff;
-      }
+    &:hover, &:focus {
+      border-color: var(--primary-color);
     }
     
-    .el-dialog__body {
-      color: rgba(255, 255, 255, 0.8);
-    }
-    
-    .el-form-item__label {
-      color: rgba(255, 255, 255, 0.8);
-    }
-    
-    .el-input__wrapper {
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      box-shadow: none;
-      
-      &:hover, &:focus {
-        border-color: rgba(102, 126, 234, 0.5);
-      }
-      
-      input {
-        color: #fff;
-        
-        &::placeholder {
-          color: rgba(255, 255, 255, 0.3);
-        }
-      }
-    }
-    
-    .el-textarea__inner {
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      box-shadow: none;
-      color: #fff;
-      
-      &:hover, &:focus {
-        border-color: rgba(102, 126, 234, 0.5);
-      }
+    input {
+      color: var(--text-primary);
       
       &::placeholder {
-        color: rgba(255, 255, 255, 0.3);
+        color: var(--text-tertiary);
       }
+    }
+  }
+  
+  .el-textarea__inner {
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    
+    &::placeholder {
+      color: var(--text-tertiary);
     }
   }
 }

@@ -275,12 +275,12 @@ onMounted(async () => {
 <style lang="scss" scoped>
 .function-points-page {
   min-height: calc(100vh - 60px);
-  background: linear-gradient(135deg, #0f1624 0%, #1e293b 100%);
+  background: var(--background-color);
   background-image: 
     radial-gradient(circle at 10% 20%, rgba(102, 126, 234, 0.1) 0%, transparent 20%),
     radial-gradient(circle at 90% 80%, rgba(79, 172, 254, 0.1) 0%, transparent 20%);
   padding: 24px;
-  color: #fff;
+  color: var(--text-primary);
   font-family: 'Inter', 'PingFang SC', sans-serif;
   
   .page-header {
@@ -289,10 +289,10 @@ onMounted(async () => {
     align-items: center;
     margin-bottom: 24px;
     padding: 20px 24px;
-    background: rgba(255, 255, 255, 0.05);
+    background: var(--surface-color);
     backdrop-filter: blur(10px);
     border-radius: 16px;
-    border: 1px solid rgba(102, 126, 234, 0.2);
+    border: 1px solid var(--border-color);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
     
     .header-content {
@@ -300,7 +300,7 @@ onMounted(async () => {
         font-size: 22px;
         font-weight: 600;
         margin: 0 0 6px 0;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
@@ -308,7 +308,7 @@ onMounted(async () => {
       
       .page-subtitle {
         font-size: 13px;
-        color: rgba(255, 255, 255, 0.5);
+        color: var(--text-tertiary);
         margin: 0;
       }
     }
@@ -321,21 +321,21 @@ onMounted(async () => {
         width: 200px;
         
         :deep(.el-select__wrapper) {
-          background: rgba(255, 255, 255, 0.05);
-          border-color: rgba(102, 126, 234, 0.3);
+          background: var(--surface-color);
+          border-color: var(--border-color);
           
           &:hover {
-            border-color: rgba(102, 126, 234, 0.5);
+            border-color: var(--primary-color);
           }
         }
         
         :deep(.el-input__inner) {
-          color: #fff;
+          color: var(--text-primary);
         }
       }
       
       .create-btn {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);
         border: none;
         box-shadow: 0 0 20px rgba(102, 126, 234, 0.3);
         
@@ -352,10 +352,10 @@ onMounted(async () => {
   }
   
   .content-card {
-    background: rgba(255, 255, 255, 0.05);
+    background: var(--surface-color);
     backdrop-filter: blur(10px);
     border-radius: 16px;
-    border: 1px solid rgba(102, 126, 234, 0.2);
+    border: 1px solid var(--border-color);
     padding: 24px;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
     
@@ -364,17 +364,17 @@ onMounted(async () => {
         display: flex;
         align-items: center;
         padding: 18px 24px;
-        background: rgba(255, 255, 255, 0.04);
+        background: var(--border-light);
         backdrop-filter: blur(8px);
         border-radius: 12px;
         margin-bottom: 16px;
         transition: all 0.3s ease;
         position: relative;
-        border: 1px solid rgba(102, 126, 234, 0.1);
+        border: 1px solid var(--border-color);
         
         &:hover {
-          background: rgba(255, 255, 255, 0.08);
-          border-color: rgba(102, 126, 234, 0.3);
+          background: var(--border-color);
+          border-color: var(--primary-color);
           transform: translateY(-2px);
           box-shadow: 0 0 30px rgba(102, 126, 234, 0.15);
           
@@ -413,7 +413,7 @@ onMounted(async () => {
             font-size: 16px;
             font-weight: 600;
             margin-bottom: 8px;
-            color: #fff;
+            color: var(--text-primary);
             position: relative;
             z-index: 3;
             white-space: nowrap;
@@ -458,7 +458,7 @@ onMounted(async () => {
             
             .type-tag {
               background: rgba(102, 126, 234, 0.2);
-              color: #667eea;
+              color: var(--primary-color);
               border: 1px solid rgba(102, 126, 234, 0.3);
               box-shadow: 0 0 10px rgba(102, 126, 234, 0.2);
             }
@@ -466,14 +466,14 @@ onMounted(async () => {
             .priority-tag {
               &.p0 {
                 background: rgba(245, 108, 108, 0.15);
-                color: #f56c6c;
+                color: var(--danger-color);
                 box-shadow: 0 0 15px rgba(245, 108, 108, 0.3);
                 border: 1px solid rgba(245, 108, 108, 0.3);
               }
               
               &.p1 {
                 background: rgba(230, 162, 60, 0.15);
-                color: #e6a23c;
+                color: var(--warning-color);
                 box-shadow: 0 0 15px rgba(230, 162, 60, 0.3);
                 border: 1px solid rgba(230, 162, 60, 0.3);
               }
@@ -487,13 +487,13 @@ onMounted(async () => {
               
               &.p3, &.p4 {
                 background: rgba(156, 163, 175, 0.15);
-                color: #d1d5db;
+                color: var(--text-tertiary);
                 border: 1px solid rgba(156, 163, 175, 0.3);
               }
             }
             
             .meta-module {
-              color: rgba(255, 255, 255, 0.7);
+              color: var(--text-secondary);
               font-size: 12px;
               font-weight: 500;
             }
@@ -512,21 +512,21 @@ onMounted(async () => {
           
           &.pending {
             background: rgba(230, 162, 60, 0.15);
-            color: #e6a23c;
+            color: var(--warning-color);
             border: 1px solid rgba(230, 162, 60, 0.3);
             box-shadow: 0 0 10px rgba(230, 162, 60, 0.2);
           }
           
           &.approved {
             background: rgba(103, 194, 58, 0.15);
-            color: #67c23a;
+            color: var(--success-color);
             border: 1px solid rgba(103, 194, 58, 0.3);
             box-shadow: 0 0 10px rgba(103, 194, 58, 0.2);
           }
           
           &.rejected {
             background: rgba(245, 108, 108, 0.15);
-            color: #f56c6c;
+            color: var(--danger-color);
             border: 1px solid rgba(245, 108, 108, 0.3);
             box-shadow: 0 0 10px rgba(245, 108, 108, 0.2);
           }
@@ -540,10 +540,10 @@ onMounted(async () => {
           flex-shrink: 0;
           
           :deep(.el-button) {
-            color: #fff;
+            color: var(--text-primary);
             
             &:hover {
-              color: #667eea;
+              color: var(--primary-color);
             }
           }
         }
@@ -552,12 +552,12 @@ onMounted(async () => {
       .empty-state {
         text-align: center;
         padding: 60px 20px;
-        color: rgba(255, 255, 255, 0.4);
+        color: var(--text-tertiary);
         
         .el-icon {
           font-size: 64px;
           margin-bottom: 16px;
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           background-clip: text;
@@ -571,47 +571,47 @@ onMounted(async () => {
   }
   
   :deep(.el-dialog) {
-    background: rgba(255, 255, 255, 0.05);
+    background: var(--surface-color);
     backdrop-filter: blur(10px);
-    border: 1px solid rgba(102, 126, 234, 0.3);
+    border: 1px solid var(--border-color);
     
     .el-dialog__header {
-      border-bottom: 1px solid rgba(102, 126, 234, 0.2);
+      border-bottom: 1px solid var(--border-color);
       
       .el-dialog__title {
-        color: #fff;
+        color: var(--text-primary);
         font-weight: 600;
       }
     }
     
     .el-dialog__body {
-      color: #fff;
+      color: var(--text-primary);
       
       :deep(.el-form-item__label) {
-        color: rgba(255, 255, 255, 0.9);
+        color: var(--text-secondary);
       }
       
       :deep(.el-input__inner),
       :deep(.el-textarea__inner),
       :deep(.el-select__wrapper) {
-        background: rgba(255, 255, 255, 0.05);
-        border-color: rgba(102, 126, 234, 0.3);
-        color: #fff;
+        background: var(--surface-color);
+        border-color: var(--border-color);
+        color: var(--text-primary);
         
         &:hover {
-          border-color: rgba(102, 126, 234, 0.5);
+          border-color: var(--primary-color);
         }
       }
       
       :deep(.el-select-dropdown) {
-        background: rgba(255, 255, 255, 0.1);
-        border-color: rgba(102, 126, 234, 0.3);
+        background: var(--surface-color);
+        border-color: var(--border-color);
         
         .el-select-dropdown__item {
-          color: #fff;
+          color: var(--text-primary);
           
           &:hover {
-            background: rgba(102, 126, 234, 0.2);
+            background: var(--border-light);
           }
         }
       }

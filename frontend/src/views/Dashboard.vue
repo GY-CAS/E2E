@@ -268,9 +268,9 @@ onUnmounted(() => {
 <style lang="scss" scoped>
 .dashboard {
   min-height: calc(100vh - 60px);
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  background: var(--background-color);
   padding: 24px;
-  color: #fff;
+  color: var(--text-primary);
   
   .dashboard-header {
     display: flex;
@@ -278,24 +278,24 @@ onUnmounted(() => {
     align-items: center;
     margin-bottom: 32px;
     padding: 24px 32px;
-    background: rgba(255, 255, 255, 0.05);
+    background: var(--surface-color);
     border-radius: 16px;
     backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--border-color);
     
     .header-content {
       .title {
         font-size: 28px;
         font-weight: 600;
         margin: 0 0 8px 0;
-        background: linear-gradient(90deg, #fff, #a8b2d1);
+        background: linear-gradient(90deg, var(--text-primary), #a8b2d1);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
       }
       
       .subtitle {
         font-size: 14px;
-        color: rgba(255, 255, 255, 0.6);
+        color: var(--text-tertiary);
         margin: 0;
       }
     }
@@ -308,11 +308,12 @@ onUnmounted(() => {
         font-weight: 300;
         font-family: 'Courier New', monospace;
         letter-spacing: 2px;
+        color: var(--text-primary);
       }
       
       .date {
         font-size: 13px;
-        color: rgba(255, 255, 255, 0.5);
+        color: var(--text-tertiary);
         margin-top: 4px;
       }
     }
@@ -328,14 +329,14 @@ onUnmounted(() => {
       position: relative;
       padding: 24px;
       border-radius: 16px;
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: var(--surface-color);
+      border: 1px solid var(--border-color);
       overflow: hidden;
       transition: all 0.3s ease;
       
       &:hover {
         transform: translateY(-4px);
-        border-color: rgba(255, 255, 255, 0.2);
+        border-color: var(--primary-color);
         
         .stat-bg {
           opacity: 0.15;
@@ -353,7 +354,7 @@ onUnmounted(() => {
       }
       
       &.projects .stat-bg {
-        background: radial-gradient(circle, #667eea 0%, transparent 70%);
+        background: radial-gradient(circle, var(--primary-color) 0%, transparent 70%);
       }
       
       &.documents .stat-bg {
@@ -391,7 +392,7 @@ onUnmounted(() => {
       }
       
       &.projects .stat-icon {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);
       }
       
       &.documents .stat-icon {
@@ -411,11 +412,12 @@ onUnmounted(() => {
           font-size: 36px;
           font-weight: 600;
           line-height: 1;
+          color: var(--text-primary);
         }
         
         .stat-label {
           font-size: 14px;
-          color: rgba(255, 255, 255, 0.6);
+          color: var(--text-tertiary);
           margin-top: 8px;
         }
       }
@@ -426,9 +428,9 @@ onUnmounted(() => {
         gap: 6px;
         margin-top: 16px;
         padding-top: 16px;
-        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        border-top: 1px solid var(--border-color);
         font-size: 12px;
-        color: rgba(255, 255, 255, 0.5);
+        color: var(--text-tertiary);
         
         .el-icon {
           font-size: 14px;
@@ -444,9 +446,9 @@ onUnmounted(() => {
     
     .quick-actions-panel,
     .side-panel {
-      background: rgba(255, 255, 255, 0.05);
+      background: var(--surface-color);
       border-radius: 16px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      border: 1px solid var(--border-color);
       padding: 24px;
       
       .panel-header {
@@ -456,11 +458,12 @@ onUnmounted(() => {
           font-size: 16px;
           font-weight: 500;
           margin: 0 0 12px 0;
+          color: var(--text-primary);
         }
         
         .panel-line {
           height: 2px;
-          background: linear-gradient(90deg, #667eea, transparent);
+          background: linear-gradient(90deg, var(--primary-color), transparent);
           border-radius: 1px;
         }
       }
@@ -475,15 +478,15 @@ onUnmounted(() => {
         display: flex;
         align-items: center;
         padding: 20px;
-        background: rgba(255, 255, 255, 0.03);
+        background: var(--border-light);
         border-radius: 12px;
-        border: 1px solid rgba(255, 255, 255, 0.08);
+        border: 1px solid var(--border-color);
         cursor: pointer;
         transition: all 0.3s ease;
         
         &:hover {
-          background: rgba(255, 255, 255, 0.08);
-          border-color: rgba(255, 255, 255, 0.15);
+          background: var(--border-color);
+          border-color: var(--primary-color);
           transform: translateX(4px);
           
           .action-arrow {
@@ -496,7 +499,7 @@ onUnmounted(() => {
           width: 48px;
           height: 48px;
           border-radius: 10px;
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);
           display: flex;
           align-items: center;
           justify-content: center;
@@ -519,11 +522,12 @@ onUnmounted(() => {
             font-size: 15px;
             font-weight: 500;
             margin: 0 0 4px 0;
+            color: var(--text-primary);
           }
           
           p {
             font-size: 12px;
-            color: rgba(255, 255, 255, 0.5);
+            color: var(--text-tertiary);
             margin: 0;
           }
         }
@@ -532,7 +536,7 @@ onUnmounted(() => {
           opacity: 0;
           transform: translateX(-8px);
           transition: all 0.3s ease;
-          color: rgba(255, 255, 255, 0.4);
+          color: var(--text-tertiary);
         }
       }
     }
@@ -542,14 +546,14 @@ onUnmounted(() => {
         display: flex;
         align-items: center;
         padding: 14px;
-        background: rgba(255, 255, 255, 0.03);
+        background: var(--border-light);
         border-radius: 10px;
         margin-bottom: 10px;
         cursor: pointer;
         transition: all 0.3s ease;
         
         &:hover {
-          background: rgba(255, 255, 255, 0.08);
+          background: var(--border-color);
           
           .project-arrow {
             opacity: 1;
@@ -565,7 +569,7 @@ onUnmounted(() => {
           align-items: center;
           justify-content: center;
           margin-right: 12px;
-          color: #667eea;
+          color: var(--primary-color);
         }
         
         .project-info {
@@ -575,6 +579,7 @@ onUnmounted(() => {
             font-size: 14px;
             font-weight: 500;
             margin-bottom: 4px;
+            color: var(--text-primary);
           }
           
           .project-meta {
@@ -587,24 +592,24 @@ onUnmounted(() => {
               padding: 2px 8px;
               border-radius: 4px;
               background: rgba(103, 194, 58, 0.2);
-              color: #67c23a;
+              color: var(--success-color);
               
               &.inactive {
-                background: rgba(255, 255, 255, 0.1);
-                color: rgba(255, 255, 255, 0.5);
+                background: var(--border-light);
+                color: var(--text-tertiary);
               }
             }
             
             .project-date {
               font-size: 11px;
-              color: rgba(255, 255, 255, 0.4);
+              color: var(--text-tertiary);
             }
           }
         }
         
         .project-arrow {
           opacity: 0;
-          color: rgba(255, 255, 255, 0.3);
+          color: var(--text-tertiary);
           transition: opacity 0.3s ease;
         }
       }
@@ -612,7 +617,7 @@ onUnmounted(() => {
       .empty-state {
         text-align: center;
         padding: 40px 20px;
-        color: rgba(255, 255, 255, 0.4);
+        color: var(--text-tertiary);
         
         .el-icon {
           font-size: 48px;

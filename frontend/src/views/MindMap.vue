@@ -40,7 +40,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch, nextTick } from 'vue'
+import { ref, onMounted, watch, nextTick, onUnmounted } from 'vue'
 import { ZoomIn, ZoomOut, RefreshRight, Share } from '@element-plus/icons-vue'
 import { projectApi, type Project } from '@/api'
 import G6 from '@antv/g6'
@@ -96,6 +96,16 @@ const loadMindMap = async () => {
   renderMindMap()
 }
 
+const getThemeColors = () => {
+  const isDark = document.documentElement.classList.contains('dark-theme')
+  return {
+    nodeFill: isDark ? '#667eea' : '#409eff',
+    nodeStroke: isDark ? '#667eea' : '#409eff',
+    edgeStroke: isDark ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.3)',
+    textFill: '#fff'
+  }
+}
+
 const convertToG6Data = (data: any): any => {
   return {
     id: data.id,
@@ -112,6 +122,7 @@ const renderMindMap = () => {
   }
   
   const g6Data = convertToG6Data(mindMapData.value[0])
+  const colors = getThemeColors()
   
   graph.value = new G6.TreeGraph({
     container: 'mind-map-canvas',
@@ -128,13 +139,13 @@ const renderMindMap = () => {
       size: [120, 30],
       type: 'rect',
       style: {
-        fill: '#667eea',
-        stroke: '#667eea',
+        fill: colors.nodeFill,
+        stroke: colors.nodeStroke,
         radius: 4
       },
       labelCfg: {
         style: {
-          fill: '#fff',
+          fill: colors.textFill,
           fontSize: 12
         }
       }
@@ -142,7 +153,7 @@ const renderMindMap = () => {
     defaultEdge: {
       type: 'cubic-horizontal',
       style: {
-        stroke: 'rgba(255, 255, 255, 0.3)'
+        stroke: colors.edgeStroke
       }
     },
     layout: {
@@ -159,6 +170,12 @@ const renderMindMap = () => {
   graph.value.data(g6Data)
   graph.value.render()
   graph.value.fitView()
+}
+
+const handleThemeChange = () => {
+  if (selectedProject.value) {
+    renderMindMap()
+  }
 }
 
 const zoomIn = () => {
@@ -187,15 +204,32 @@ watch(selectedProject, () => {
 
 onMounted(() => {
   loadProjects()
+  window.addEventListener('storage', handleThemeChange)
+  
+  const observer = new MutationObserver((mutations) => {
+    mutations.forEach((mutation) => {
+      if (mutation.attributeName === 'class' && mutation.target === document.documentElement) {
+        handleThemeChange()
+      }
+    })
+  })
+  
+  observer.observe(document.documentElement, { attributes: true })
+  
+  onUnmounted(() => {
+    window.removeEventListener('storage', handleThemeChange)
+    observer.disconnect()
+  })
 })
 </script>
 
 <style lang="scss" scoped>
 .mind-map-page {
   min-height: calc(100vh - 60px);
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  background: var(--bg-gradient);
   padding: 24px;
-  color: #fff;
+  color: var(--text-primary);
+  transition: all 0.25s ease;
   
   .page-header {
     display: flex;
@@ -203,21 +237,25 @@ onMounted(() => {
     align-items: center;
     margin-bottom: 24px;
     padding: 20px 24px;
-    background: rgba(255, 255, 255, 0.05);
+    background: var(--card-bg);
     border-radius: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--border-color);
+    transition: all 0.25s ease;
     
     .header-content {
       .page-title {
         font-size: 22px;
         font-weight: 600;
         margin: 0 0 6px 0;
+        color: var(--text-primary);
+        transition: color 0.25s ease;
       }
       
       .page-subtitle {
         font-size: 13px;
-        color: rgba(255, 255, 255, 0.5);
+        color: var(--text-secondary);
         margin: 0;
+        transition: color 0.25s ease;
       }
     }
     
@@ -232,13 +270,14 @@ onMounted(() => {
       
       .zoom-controls {
         .el-button {
-          background: rgba(255, 255, 255, 0.05);
-          border: 1px solid rgba(255, 255, 255, 0.1);
-          color: rgba(255, 255, 255, 0.8);
+          background: var(--card-bg-hover);
+          border: 1px solid var(--border-color);
+          color: var(--text-primary);
+          transition: all 0.25s ease;
           
           &:hover {
-            background: rgba(255, 255, 255, 0.1);
-            border-color: rgba(255, 255, 255, 0.2);
+            background: var(--card-bg-active);
+            border-color: var(--border-color-hover);
           }
         }
       }
@@ -246,15 +285,17 @@ onMounted(() => {
   }
   
   .content-card {
-    background: rgba(255, 255, 255, 0.05);
+    background: var(--card-bg);
     border-radius: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--border-color);
     padding: 20px;
+    transition: all 0.25s ease;
     
     .mind-map-container {
       min-height: 600px;
-      background: rgba(0, 0, 0, 0.2);
+      background: var(--card-bg-hover);
       border-radius: 8px;
+      transition: all 0.25s ease;
       
       .empty-state {
         display: flex;
@@ -262,11 +303,13 @@ onMounted(() => {
         align-items: center;
         justify-content: center;
         height: 600px;
-        color: rgba(255, 255, 255, 0.4);
+        color: var(--text-tertiary);
+        transition: color 0.25s ease;
         
         .el-icon {
           font-size: 64px;
           margin-bottom: 16px;
+          transition: color 0.25s ease;
         }
         
         p {

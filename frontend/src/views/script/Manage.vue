@@ -165,9 +165,10 @@ onMounted(async () => {
 <style lang="scss" scoped>
 .scripts-page {
   min-height: calc(100vh - 60px);
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  background: var(--bg-gradient);
   padding: 24px;
-  color: #fff;
+  color: var(--text-primary);
+  transition: all 0.25s ease;
   
   .page-header {
     display: flex;
@@ -175,21 +176,25 @@ onMounted(async () => {
     align-items: center;
     margin-bottom: 24px;
     padding: 20px 24px;
-    background: rgba(255, 255, 255, 0.05);
+    background: var(--card-bg);
     border-radius: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--border-color);
+    transition: all 0.25s ease;
     
     .header-content {
       .page-title {
         font-size: 22px;
         font-weight: 600;
         margin: 0 0 6px 0;
+        color: var(--text-primary);
+        transition: color 0.25s ease;
       }
       
       .page-subtitle {
         font-size: 13px;
-        color: rgba(255, 255, 255, 0.5);
+        color: var(--text-secondary);
         margin: 0;
+        transition: color 0.25s ease;
       }
     }
     
@@ -204,23 +209,24 @@ onMounted(async () => {
   }
   
   .content-card {
-    background: rgba(255, 255, 255, 0.05);
+    background: var(--card-bg);
     border-radius: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--border-color);
     padding: 20px;
+    transition: all 0.25s ease;
     
     .scripts-list {
       .script-item {
         display: flex;
         align-items: center;
         padding: 16px 20px;
-        background: rgba(255, 255, 255, 0.03);
+        background: var(--card-bg-hover);
         border-radius: 10px;
         margin-bottom: 12px;
-        transition: all 0.3s ease;
+        transition: all 0.25s ease;
         
         &:hover {
-          background: rgba(255, 255, 255, 0.06);
+          background: var(--card-bg-active);
           
           .script-actions {
             opacity: 1;
@@ -231,7 +237,7 @@ onMounted(async () => {
           width: 44px;
           height: 44px;
           border-radius: 10px;
-          background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+          background: var(--primary-gradient);
           display: flex;
           align-items: center;
           justify-content: center;
@@ -250,6 +256,8 @@ onMounted(async () => {
             font-size: 15px;
             font-weight: 500;
             margin-bottom: 6px;
+            color: var(--text-primary);
+            transition: color 0.25s ease;
           }
           
           .script-meta {
@@ -257,7 +265,8 @@ onMounted(async () => {
             align-items: center;
             gap: 12px;
             font-size: 12px;
-            color: rgba(255, 255, 255, 0.5);
+            color: var(--text-secondary);
+            transition: color 0.25s ease;
             
             .meta-tag {
               padding: 2px 8px;
@@ -265,18 +274,21 @@ onMounted(async () => {
             }
             
             .lang-tag {
-              background: rgba(103, 194, 58, 0.2);
-              color: #67c23a;
+              background: var(--success-color-light);
+              color: var(--success-color);
+              transition: all 0.25s ease;
               
               &.java {
-                background: rgba(230, 162, 60, 0.2);
-                color: #e6a23c;
+                background: var(--warning-color-light);
+                color: var(--warning-color);
+                transition: all 0.25s ease;
               }
             }
             
             .framework-tag {
-              background: rgba(102, 126, 234, 0.2);
-              color: #667eea;
+              background: var(--primary-color-light);
+              color: var(--primary-color);
+              transition: all 0.25s ease;
             }
           }
         }
@@ -288,18 +300,21 @@ onMounted(async () => {
           margin-right: 16px;
           
           &.draft {
-            background: rgba(255, 255, 255, 0.1);
-            color: rgba(255, 255, 255, 0.6);
+            background: var(--text-secondary-light);
+            color: var(--text-secondary);
+            transition: all 0.25s ease;
           }
           
           &.reviewed {
-            background: rgba(230, 162, 60, 0.2);
-            color: #e6a23c;
+            background: var(--warning-color-light);
+            color: var(--warning-color);
+            transition: all 0.25s ease;
           }
           
           &.approved {
-            background: rgba(103, 194, 58, 0.2);
-            color: #67c23a;
+            background: var(--success-color-light);
+            color: var(--success-color);
+            transition: all 0.25s ease;
           }
         }
         
@@ -307,18 +322,20 @@ onMounted(async () => {
           display: flex;
           gap: 4px;
           opacity: 0.6;
-          transition: opacity 0.3s ease;
+          transition: opacity 0.25s ease;
         }
       }
       
       .empty-state {
         text-align: center;
         padding: 60px 20px;
-        color: rgba(255, 255, 255, 0.4);
+        color: var(--text-tertiary);
+        transition: color 0.25s ease;
         
         .el-icon {
           font-size: 64px;
           margin-bottom: 16px;
+          transition: color 0.25s ease;
         }
         
         p {
@@ -334,8 +351,9 @@ onMounted(async () => {
       gap: 24px;
       margin-bottom: 16px;
       padding: 16px;
-      background: rgba(255, 255, 255, 0.05);
+      background: var(--card-bg-hover);
       border-radius: 8px;
+      transition: all 0.25s ease;
       
       .info-item {
         display: flex;
@@ -344,54 +362,61 @@ onMounted(async () => {
         
         .info-label {
           font-size: 12px;
-          color: rgba(255, 255, 255, 0.5);
+          color: var(--text-secondary);
+          transition: color 0.25s ease;
         }
         
         .info-value {
           font-size: 14px;
           font-weight: 500;
+          color: var(--text-primary);
+          transition: color 0.25s ease;
         }
       }
     }
     
     .code-editor {
-      background-color: #0d1117;
+      background-color: var(--code-bg);
       border-radius: 8px;
       padding: 16px;
       max-height: 500px;
       overflow: auto;
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      border: 1px solid var(--border-color);
+      transition: all 0.25s ease;
       
       pre {
         margin: 0;
         
         code {
-          color: #c9d1d9;
+          color: var(--code-text);
           font-family: 'Consolas', 'Monaco', monospace;
           font-size: 13px;
           line-height: 1.6;
+          transition: color 0.25s ease;
         }
       }
     }
   }
 }
 
-:deep(.dark-dialog) {
-  .el-dialog {
-    background: #1a1a2e;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+:deep(.el-dialog) {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  transition: all 0.25s ease;
+  
+  .el-dialog__header {
+    border-bottom: 1px solid var(--border-color);
+    transition: border-color 0.25s ease;
     
-    .el-dialog__header {
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-      
-      .el-dialog__title {
-        color: #fff;
-      }
+    .el-dialog__title {
+      color: var(--text-primary);
+      transition: color 0.25s ease;
     }
-    
-    .el-dialog__body {
-      color: rgba(255, 255, 255, 0.8);
-    }
+  }
+  
+  .el-dialog__body {
+    color: var(--text-primary);
+    transition: color 0.25s ease;
   }
 }
 </style>
