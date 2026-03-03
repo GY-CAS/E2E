@@ -60,6 +60,19 @@ class ProjectRead(BaseModel):
         from_attributes = True
 
 
+class ProjectDetail(BaseModel):
+    id: UUID
+    name: str
+    description: Optional[str]
+    status: str
+    created_at: datetime
+    updated_at: datetime
+    document_stats: Dict[str, int]
+    function_point_count: int
+    test_case_stats: Dict[str, int]
+    test_script_count: int
+
+
 class DocumentCreate(BaseModel):
     project_id: UUID
     name: str = Field(..., max_length=255)

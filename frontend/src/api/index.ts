@@ -70,6 +70,31 @@ export interface ProjectStats {
   test_case_count: number
 }
 
+export interface ProjectDetail {
+  id: string
+  name: string
+  description: string | null
+  status: string
+  created_at: string
+  updated_at: string
+  document_stats: {
+    total: number
+    parsed: number
+    pending: number
+    processing: number
+    failed: number
+  }
+  function_point_count: number
+  test_case_stats: {
+    total: number
+    manual: number
+    auto: number
+    frontend: number
+    backend: number
+  }
+  test_script_count: number
+}
+
 export interface Document {
   id: string
   project_id: string
@@ -144,6 +169,7 @@ export const projectApi = {
   list: (params?: { skip?: number; limit?: number }) => 
     api.get<Project[]>('/projects', { params }),
   get: (id: string) => api.get<Project>(`/projects/${id}`),
+  getDetail: (id: string) => api.get<ProjectDetail>(`/projects/${id}/detail`),
   stats: (id: string) => api.get<ProjectStats>(`/projects/${id}/stats`),
   create: (data: Partial<Project>) => api.post<Project>('/projects', data),
   update: (id: string, data: Partial<Project>) => api.patch<Project>(`/projects/${id}`, data),

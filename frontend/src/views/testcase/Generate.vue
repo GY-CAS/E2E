@@ -872,7 +872,8 @@ const allFunctionPoints = computed(() => {
     }
   }
   
-  return uniqueFps
+  // 应用排序，保持与管理页面一致
+  return sortFunctionPoints(uniqueFps)
 })
 
 const approvedFpCount = computed(() => {
@@ -1005,6 +1006,24 @@ const onProjectChange = async (projectId: string) => {
   }
 }
 
+// 监听当前步骤变化，控制刷新
+watch(currentStep, (newStep) => {
+  if (newStep === 2 || newStep === 3) {
+    // 进入功能点相关步骤，启动刷新
+    startFunctionPointsRefresh()
+  } else {
+    // 离开功能点相关步骤，停止刷新
+    stopFunctionPointsRefresh()
+  }
+})
+
+// 监听store中功能点的变化，保持与功能点管理页面同步
+watch(() => generateStore.savedState.existingFunctionPoints, (newFps) => {
+  if (newFps && newFps.length >= 0) {
+    existingFunctionPoints.value = newFps
+  }
+}, { deep: true })
+
 const loadExistingDocuments = async () => {
   if (!formData.projectId) return
   
@@ -1026,6 +1045,12 @@ const loadExistingFunctionPoints = async () => {
   } catch (error) {
     console.error('Failed to load function points:', error)
   }
+}
+
+// 确保功能点排序与管理页面一致
+const sortFunctionPoints = (fps: any[]) => {
+  // 保持与API返回的顺序一致，与功能点管理页面保持同步
+  return fps
 }
 
 const handleFileChange = (file: any, files: any[]) => {
@@ -1144,6 +1169,30 @@ const goToStep = async (step: number) => {
     await loadExistingFunctionPoints()
   } else if (step === 4) {
     await loadExistingTestCases()
+  }
+}
+
+// 定期刷新功能点的定时器
+let functionPointsRefreshInterval: number | null = null
+
+// 启动功能点刷新
+const startFunctionPointsRefresh = () => {
+  // 每30秒刷新一次功能点
+  if (functionPointsRefreshInterval) {
+    clearInterval(functionPointsRefreshInterval)
+  }
+  functionPointsRefreshInterval = window.setInterval(async () => {
+    if (formData.projectId && (currentStep.value === 2 || currentStep.value === 3)) {
+      await loadExistingFunctionPoints()
+    }
+  }, 30000)
+}
+
+// 停止功能点刷新
+const stopFunctionPointsRefresh = () => {
+  if (functionPointsRefreshInterval) {
+    clearInterval(functionPointsRefreshInterval)
+    functionPointsRefreshInterval = null
   }
 }
 
@@ -1866,6 +1915,7 @@ onMounted(async () => {
 
 onUnmounted(() => {
   saveCurrentState()
+  stopFunctionPointsRefresh()
 })
 
 watch([currentStep, formData, generatedFunctionPoints, generatedTestCases, savedFpIds], () => {

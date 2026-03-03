@@ -39,6 +39,14 @@ class Settings(BaseSettings):
     
     LOG_LEVEL: str = "INFO"
     LOG_FILE: str = "./logs/app.log"
+    LOG_DIR: str = "./logs"
+    LOG_JSON_FORMAT: bool = True
+    LOG_MAX_BYTES: int = 10 * 1024 * 1024
+    LOG_BACKUP_COUNT: int = 5
+    LOG_API_REQUESTS: bool = True
+    LOG_REQUEST_BODY: bool = True
+    LOG_RESPONSE_BODY: bool = True
+    LOG_HEADERS: bool = False
     
     class Config:
         env_file = ".env"

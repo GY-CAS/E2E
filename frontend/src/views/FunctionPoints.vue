@@ -105,6 +105,7 @@ import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from 'element-plus'
 import { Plus, List, Edit, Check, Close, Delete } from '@element-plus/icons-vue'
 import { functionPointApi, projectApi, type FunctionPoint, type Project } from '@/api'
+import { useGenerateStore } from '@/stores/generate'
 
 const loading = ref(false)
 const submitting = ref(false)
@@ -115,6 +116,7 @@ const dialogVisible = ref(false)
 const isEdit = ref(false)
 const formRef = ref<FormInstance>()
 const editingId = ref<string>('')
+const generateStore = useGenerateStore()
 
 const formData = reactive({
   name: '',
@@ -222,7 +224,12 @@ const submitForm = async () => {
       }
       
       dialogVisible.value = false
-      loadFunctionPoints()
+      await loadFunctionPoints()
+      
+      // 更新generate store中的功能点状态
+      if (generateStore.savedState.projectId === selectedProject.value) {
+        generateStore.saveState({ existingFunctionPoints: functionPoints.value })
+      }
     } catch (error: any) {
       console.error('Failed to save:', error)
       ElMessage.error(error?.response?.data?.detail || '保存失败')
@@ -236,7 +243,12 @@ const approveFP = async (fp: FunctionPoint) => {
   try {
     await functionPointApi.approve(fp.id)
     ElMessage.success('审核通过')
-    loadFunctionPoints()
+    await loadFunctionPoints()
+    
+    // 更新generate store中的功能点状态
+    if (generateStore.savedState.projectId === selectedProject.value) {
+      generateStore.saveState({ existingFunctionPoints: functionPoints.value })
+    }
   } catch (error) {
     console.error('Failed to approve:', error)
   }
@@ -246,7 +258,12 @@ const rejectFP = async (fp: FunctionPoint) => {
   try {
     await functionPointApi.reject(fp.id)
     ElMessage.success('已拒绝')
-    loadFunctionPoints()
+    await loadFunctionPoints()
+    
+    // 更新generate store中的功能点状态
+    if (generateStore.savedState.projectId === selectedProject.value) {
+      generateStore.saveState({ existingFunctionPoints: functionPoints.value })
+    }
   } catch (error) {
     console.error('Failed to reject:', error)
   }
@@ -259,7 +276,12 @@ const deleteFP = async (fp: FunctionPoint) => {
     })
     await functionPointApi.delete(fp.id)
     ElMessage.success('删除成功')
-    loadFunctionPoints()
+    await loadFunctionPoints()
+    
+    // 更新generate store中的功能点状态
+    if (generateStore.savedState.projectId === selectedProject.value) {
+      generateStore.saveState({ existingFunctionPoints: functionPoints.value })
+    }
   } catch (error: any) {
     if (error !== 'cancel') {
       console.error('Failed to delete:', error)

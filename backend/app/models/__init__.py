@@ -4,7 +4,7 @@ from app.models.db import (
     ProjectStatus, ScriptLanguage, ScriptStatus, NodeType
 )
 from app.models.schemas import (
-    ProjectCreate, ProjectUpdate, ProjectRead,
+    ProjectCreate, ProjectUpdate, ProjectRead, ProjectDetail,
     DocumentCreate, DocumentRead,
     FunctionPointCreate, FunctionPointUpdate, FunctionPointRead,
     TestCaseCreate, TestCaseUpdate, TestCaseRead, TestStepSchema,
@@ -19,7 +19,7 @@ __all__ = [
     "Project", "Document", "FunctionPoint", "TestCase", "TestScript", "MindMapNode",
     "DocType", "DocStatus", "TestType", "Priority", "FPStatus", "TCStatus",
     "ProjectStatus", "ScriptLanguage", "ScriptStatus", "NodeType",
-    "ProjectCreate", "ProjectUpdate", "ProjectRead",
+    "ProjectCreate", "ProjectUpdate", "ProjectRead", "ProjectDetail",
     "DocumentCreate", "DocumentRead",
     "FunctionPointCreate", "FunctionPointUpdate", "FunctionPointRead",
     "TestCaseCreate", "TestCaseUpdate", "TestCaseRead", "TestStepSchema",

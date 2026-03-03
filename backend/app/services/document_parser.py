@@ -8,6 +8,8 @@ import json
 from app.core.config import settings
 from app.services.storage import minio_service
 from app.services.milvus_service import milvus_service
+from app.core.business_log import business_logger
+from app.core.console_output import print_step_start, print_step_end, print_success, print_error, print_warning, print_progress
 
 logger = logging.getLogger(__name__)
 
@@ -24,17 +26,22 @@ class DocumentParserService:
         file_data: bytes,
         doc_type: str
     ) -> Dict[str, Any]:
-        logger.info(f"Starting to parse and store document: {file_name}")
-        
+        print_step_start(f"文档解析与存储 - {file_name}", "DocumentParser")
+
         try:
+            print_step_start(f"解析文档内容 - {file_name}", "DocumentParser")
             parsed_content = await self.parse_document(
                 file_data=file_data,
                 file_name=file_name
             )
-            
+            print_step_end(f"解析文档内容", f"提取内容 {len(parsed_content)} 字符", "DocumentParser")
+
+            print_step_start(f"分割文档内容 - {file_name}", "DocumentParser")
             chunks = self._split_content(parsed_content)
-            
+            print_step_end(f"分割文档内容", f"生成 {len(chunks)} 个块", "DocumentParser")
+
             if chunks:
+                print_step_start(f"存储向量数据 - {file_name}", "DocumentParser")
                 vector_count = await milvus_service.insert_vectors(
                     project_id=project_id,
                     document_id=document_id,
@@ -42,9 +49,39 @@ class DocumentParserService:
                     chunks=chunks,
                     content_type=doc_type
                 )
-                
+                print_step_end(f"存储向量数据", f"已存储 {vector_count} 个向量", "DocumentParser")
+
                 logger.info(f"Stored {vector_count} vectors for document {file_name}")
-            
+
+                business_logger.info(
+                    operation="document.parse_and_store",
+                    entity_type="document",
+                    entity_id=document_id,
+                    details={
+                        "project_id": project_id,
+                        "file_name": file_name,
+                        "doc_type": doc_type,
+                        "chunk_count": len(chunks),
+                        "vector_count": vector_count,
+                        "content_length": len(parsed_content)
+                    }
+                )
+            else:
+                print_warning(f"文档 {file_name} 未生成任何内容块", "DocumentParser")
+                business_logger.warning(
+                    operation="document.parse_and_store",
+                    entity_type="document",
+                    entity_id=document_id,
+                    details={
+                        "project_id": project_id,
+                        "file_name": file_name,
+                        "doc_type": doc_type,
+                        "warning": "No chunks generated from document"
+                    }
+                )
+
+            print_step_end(f"文档解析与存储 - {file_name}", f"成功，{len(chunks)} 个块", "DocumentParser")
+
             return {
                 "success": True,
                 "content": parsed_content,
@@ -56,9 +93,22 @@ class DocumentParserService:
                     "chunk_count": len(chunks)
                 }
             }
-            
+
         except Exception as e:
+            print_error(f"文档处理失败 - {file_name}: {str(e)[:50]}", "DocumentParser")
             logger.error(f"Error parsing document {file_name}: {e}")
+            business_logger.error(
+                operation="document.parse_and_store",
+                entity_type="document",
+                entity_id=document_id,
+                details={
+                    "project_id": project_id,
+                    "file_name": file_name,
+                    "doc_type": doc_type,
+                    "error": type(e).__name__,
+                    "message": str(e)
+                }
+            )
             return {
                 "success": False,
                 "error": str(e),

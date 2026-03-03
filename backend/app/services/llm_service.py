@@ -6,6 +6,8 @@ import json
 import re
 
 from app.core.config import settings
+from app.core.business_log import business_logger
+from app.core.console_output import print_step_start, print_step_end, print_success, print_error, print_info
 
 logger = logging.getLogger(__name__)
 
@@ -15,29 +17,33 @@ class LLMService:
         self.llm_api_key = settings.LLM_API_KEY
         self.llm_base_url = settings.LLM_BASE_URL
         self.llm_model = settings.LLM_MODEL
-        
+
         self.embedding_api_key = settings.EMBEDDING_API_KEY or settings.LLM_API_KEY
         self.embedding_base_url = settings.EMBEDDING_BASE_URL or settings.LLM_BASE_URL
         self.embedding_model = settings.EMBEDDING_MODEL
-    
+
     async def chat(
         self,
         messages: List[Dict[str, str]],
         system_prompt: Optional[str] = None
     ) -> str:
+        print_step_start(f"LLM 调用 - {self.llm_model}", "LLMService")
+
         try:
             chat_messages = []
-            
+
             if system_prompt:
                 chat_messages.append({"role": "system", "content": system_prompt})
-            
+
             chat_messages.extend(messages)
-            
+
+            print_info(f"发送 {len(messages)} 条消息到 {self.llm_model}", "LLMService")
+
             async with httpx.AsyncClient(timeout=300.0) as client:
                 response = await client.post(
                     f"{self.llm_base_url}/chat/completions",
                     headers={
-                        "Authorization": f"Bearer {self.llm_api_key}",
+                        "Authorization": "Bearer ***REDACTED***",
                         "Content-Type": "application/json"
                     },
                     json={
@@ -46,14 +52,44 @@ class LLMService:
                         "temperature": 0.7
                     }
                 )
-                
+
                 response.raise_for_status()
                 result = response.json()
-                
-                return result["choices"][0]["message"]["content"]
-            
+
+                response_content = result["choices"][0]["message"]["content"]
+                response_length = len(response_content)
+
+                print_step_end(f"LLM 调用", f"响应长度 {response_length} 字符", "LLMService")
+
+                business_logger.info(
+                    operation="llm.chat",
+                    entity_type="llm_request",
+                    details={
+                        "model": self.llm_model,
+                        "message_count": len(messages),
+                        "response_length": response_length
+                    }
+                )
+
+                return response_content
+
+        except httpx.HTTPStatusError as e:
+            print_error(f"LLM HTTP 错误: {e.response.status_code}", "LLMService")
+            logger.error(f"LLM HTTP error: {e.response.status_code} - {e.response.text}")
+            business_logger.error(
+                operation="llm.chat",
+                entity_type="llm_request",
+                details={"error": f"HTTP {e.response.status_code}", "message": str(e)[:200]}
+            )
+            raise
         except Exception as e:
+            print_error(f"LLM 调用失败: {str(e)[:50]}", "LLMService")
             logger.error(f"LLM chat error: {e}")
+            business_logger.error(
+                operation="llm.chat",
+                entity_type="llm_request",
+                details={"error": type(e).__name__, "message": str(e)[:200]}
+            )
             raise
     
     async def understand_requirements(self, user_input: str) -> Dict[str, Any]:
