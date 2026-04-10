@@ -1022,7 +1022,6 @@ const loadExistingFunctionPoints = async () => {
   try {
     const fps = await functionPointApi.list({ project_id: formData.projectId })
     existingFunctionPoints.value = fps || []
-    generatedFunctionPoints.value = []
   } catch (error) {
     console.error('Failed to load function points:', error)
   }
@@ -1430,7 +1429,10 @@ const approveAllTcs = () => {
   ElMessage.success('已全部审核通过')
 }
 
+const currentEditingFp = ref<any>(null)
+
 const editFp = (fp: any) => {
+  currentEditingFp.value = fp
   isEditFp.value = true
   editingFpId.value = fp.id
   editFpFormData.name = fp.name
@@ -1459,10 +1461,21 @@ const submitEditFpForm = async () => {
         status: 'pending'
       }
       
-      await functionPointApi.update(editingFpId.value, data)
-      ElMessage.success('更新成功，状态已重置为待审核')
+      // 检查是否是生成的功能点（还未保存到数据库）
+      const generatedIndex = generatedFunctionPoints.value.findIndex(fp => fp === currentEditingFp.value || (fp.name === editFpFormData.name && fp.test_type === editFpFormData.test_type))
+      
+      if (generatedIndex !== -1) {
+        // 更新生成的功能点
+        Object.assign(generatedFunctionPoints.value[generatedIndex], data)
+        ElMessage.success('更新成功，状态已重置为待审核')
+      } else if (editingFpId.value) {
+        // 更新已存在的功能点
+        await functionPointApi.update(editingFpId.value, data)
+        ElMessage.success('更新成功，状态已重置为待审核')
+        await loadExistingFunctionPoints()
+      }
+      
       editFpDialogVisible.value = false
-      await loadExistingFunctionPoints()
     } catch (error: any) {
       console.error('Failed to update function point:', error)
       ElMessage.error(error?.response?.data?.detail || '更新失败')
@@ -1471,6 +1484,7 @@ const submitEditFpForm = async () => {
 }
 
 const resetEditFpForm = () => {
+  currentEditingFp.value = null
   editFpFormData.name = ''
   editFpFormData.description = ''
   editFpFormData.test_type = 'functional'
@@ -1639,23 +1653,45 @@ const submitRefine = async () => {
   
   refineLoading.value = true
   try {
+    console.log('Starting function point refinement:', {
+      functionPoint: currentRefineFp.value,
+      feedback: refineFeedback.value,
+      projectId: formData.projectId
+    })
+    
     const result = await generatorApi.refineFunctionPoint({
       function_point: currentRefineFp.value,
       user_feedback: refineFeedback.value,
       project_id: formData.projectId
     })
     
+    console.log('Refinement result:', result)
+    
     if (!result.success) {
       ElMessage.error(result.message || '优化失败')
       return
     }
     
-    Object.assign(generatedFunctionPoints.value[currentRefineIndex.value], result.function_point)
+    if (!result.function_point) {
+      ElMessage.error('优化失败：未返回功能点数据')
+      return
+    }
+    
+    // 确保生成的功能点数据结构完整
+    const refinedPoint = {
+      ...currentRefineFp.value,
+      ...result.function_point,
+      project_id: formData.projectId,
+      status: 'pending'
+    }
+    
+    Object.assign(generatedFunctionPoints.value[currentRefineIndex.value], refinedPoint)
     refineDialogVisible.value = false
     ElMessage.success('功能点优化成功')
-  } catch (error) {
+  } catch (error: any) {
     console.error('Failed to refine:', error)
-    ElMessage.error('优化失败')
+    const errorMessage = error.response?.data?.detail || error.message || '优化失败，请稍后重试'
+    ElMessage.error(errorMessage)
   } finally {
     refineLoading.value = false
   }

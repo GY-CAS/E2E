@@ -33,4 +33,4 @@ volumes:
 networks:
   milvus:
     external: true  # 核心配置，告诉Compose不要创建新网络，使用已有的
-    name: milvus    # 必须和已存在的网络名称完全一致
+    name: milvus-net    # 必须和已存在的网络名称完全一致

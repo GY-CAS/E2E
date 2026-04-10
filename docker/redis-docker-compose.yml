@@ -44,4 +44,4 @@ networks:
     # 标记为外部已存在的网络，不重新创建
     external: true
     # 必须和实际的 milvus 网络名称完全一致
-    name: milvus
+    name: milvus-net
